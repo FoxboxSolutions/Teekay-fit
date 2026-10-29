@@ -62,18 +62,28 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Objectif :** Mettre en place le squelette Next.js/TypeScript/Tailwind, les environnements Supabase séparés, le schéma de données Phase 1, l'authentification et les contrôles d'autorisation.
 
 **Checklist :**
-- [ ] Squelette Next.js avec TypeScript, Tailwind CSS, composants accessibles
-- [ ] Environnements développement, préproduction et production séparés ; migrations pour tout changement de schéma
-- [ ] Schéma Phase 1 (§14) : `profiles`, rôles côté serveur uniquement, `offers`, `offer_files`, `leads`, `quiz_submissions`, `customers`, `orders`, `order_items`, `payments`, `payment_events`, `promo_codes`, `referrals`, `capacity_slots`, `receipts`, `consents`, `audit_logs`
-- [ ] Règles de modèle : identifiants uniques et stables, horodatages UTC affichés en heure locale, montants en entiers de DA, clés étrangères et index, politique de conservation/archivage/suppression définie
-- [ ] Authentification Supabase (lien magique par e-mail ou connexion par téléphone) ; rôles gérés uniquement côté serveur ; authentification forte pour les administrateurs
-- [ ] RLS plus contrôles d'autorisation côté serveur ; personne ne peut s'attribuer un rôle
-- [ ] Aucun texte en dur dans les composants : tout passe par un système de traduction (clés FR) — préparation RTL
-- [ ] Propriétés CSS logiques (`margin-inline-start`, `padding-inline`, etc.) au lieu des propriétés physiques — préparation RTL
-- [ ] Sécurité applicative : validation serveur de toutes les entrées, limitation de débit (authentification, leads, commande, paiement, quiz), protection CSRF, XSS, injection, IDOR, élévation de privilèges
-- [ ] Secrets jamais dans Git, jamais dans le code client, jamais dans les journaux ; gestionnaire de secrets de l'hébergeur ; aucune valeur secrète dans une variable `NEXT_PUBLIC_*`
-- [ ] Observabilité de base : suivi des erreurs, journaux structurés, surveillance de disponibilité
-- [ ] Sauvegardes de la base configurées (test de restauration en M11)
+- [x] Squelette Next.js avec TypeScript, Tailwind CSS, composants accessibles
+- [x] Environnements développement, préproduction et production séparés ; migrations pour tout changement de schéma
+- [x] Schéma Phase 1 (§14) : `profiles`, rôles côté serveur uniquement, `offers`, `offer_files`, `leads`, `quiz_submissions`, `customers`, `orders`, `order_items`, `payments`, `payment_events`, `promo_codes`, `referrals`, `capacity_slots`, `receipts`, `consents`, `audit_logs`
+- [x] Règles de modèle : identifiants uniques et stables, horodatages UTC affichés en heure locale, montants en entiers de DA, clés étrangères et index, politique de conservation/archivage/suppression définie
+- [x] Authentification Supabase (lien magique par e-mail ou connexion par téléphone) ; rôles gérés uniquement côté serveur ; authentification forte pour les administrateurs
+- [x] RLS plus contrôles d'autorisation côté serveur ; personne ne peut s'attribuer un rôle
+- [x] Aucun texte en dur dans les composants : tout passe par un système de traduction (clés FR) — préparation RTL
+- [x] Propriétés CSS logiques (`margin-inline-start`, `padding-inline`, etc.) au lieu des propriétés physiques — préparation RTL
+- [x] Sécurité applicative : validation serveur de toutes les entrées, limitation de débit (authentification, leads, commande, paiement, quiz), protection CSRF, XSS, injection, IDOR, élévation de privilèges
+- [x] Secrets jamais dans Git, jamais dans le code client, jamais dans les journaux ; gestionnaire de secrets de l'hébergeur ; aucune valeur secrète dans une variable `NEXT_PUBLIC_*`
+- [x] Observabilité de base : suivi des erreurs, journaux structurés, surveillance de disponibilité
+- [x] Sauvegardes de la base configurées (test de restauration en M11)
+
+**Points ouverts (fin M2) :**
+- Tests RLS exécutés en local avec `supabase start` (Docker requis) — à brancher en CI sur la préproduction avant M11
+- Limitation de débit actuellement en mémoire par instance (`rate-limit.ts`) : à passer sur Redis/Postgres partagé dès que plusieurs instances servent l'app
+- Purges (`purge_expired_rate_limits`, questionnaire santé 24 mois) : fonctions prêtes mais à planifier (pg_cron ou cron hébergeur)
+- CSRF : vérification d'origine active seulement si `NEXT_PUBLIC_APP_URL` est défini en environnement
+- Enrôlement MFA admin : routes prêtes (`/api/admin/mfa/*`) mais sans interface ni obligation — à imposer au dashboard (M9)
+- Connexion téléphone : code prêt mais désactivé par défaut (`AUTH_PHONE_ENABLED=false`) — décision d'activation à trancher
+- Aucun test E2E navigateur (Playwright) ni anti-bot captcha sur les formulaires publics — à arbitrer en M10/M11
+- `npx supabase status -o env` utilisé par les tests arrête imgproxy/pooler du stack local (sans impact sur les tests)
 
 **Livrables :** dépôt initial, schéma migré, authentification fonctionnelle, environnements séparés, socle i18n/CSS logiques.
 
