@@ -1,0 +1,29 @@
+# Dépendances
+node_modules/
+.npm/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Production
+build/
+
+# Environnement — jamais de secrets en Git
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Tests
+coverage/
+*.tsbuildinfo
+
+# Divers
+*.log
+.DS_Store
+Thumbs.db
