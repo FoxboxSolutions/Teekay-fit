@@ -1,0 +1,2 @@
+-- Fichier de seed local (aucune donnée de démonstration).
+-- Les données de production sont créées uniquement par le propriétaire (M1) et le dashboard (M9).
