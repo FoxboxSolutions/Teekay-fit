@@ -2,5 +2,9 @@
   "home": {
     "title": "TeekayFit",
     "tagline": "Discipline · Ambition · Brotherhood"
+  },
+  "error": {
+    "title": "Une erreur est survenue",
+    "retry": "Réessayer"
   }
 }
