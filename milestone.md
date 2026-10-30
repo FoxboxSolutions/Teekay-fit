@@ -81,7 +81,7 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [ ] Purges (`purge_expired_rate_limits`, questionnaire santé 24 mois) : fonctions prêtes mais à planifier (pg_cron ou cron hébergeur) — **M12**
 - [ ] CSRF : vérification d'origine active seulement si `NEXT_PUBLIC_APP_URL` est défini en environnement — **M11** (checklist prod)
 - [ ] Enrôlement MFA admin : routes prêtes (`/api/admin/mfa/*`) mais sans interface ni obligation — à imposer au dashboard — **M9**
-- [x] Connexion téléphone — **décision tranchée** : lien magique e-mail = mode principal, téléphone **désactivé au lancement** (`AUTH_PHONE_ENABLED=false`) ; e-mail **obligatoire** à la commande — reporté en M4 (formulaire) et M6 (création du compte) ; le PRD « e-mail si utile » est mis à jour par le propriétaire
+- [x] Connexion téléphone — **décision tranchée** : lien magique e-mail = mode principal, téléphone **désactivé au lancement** (`AUTH_PHONE_ENABLED=false`) ; e-mail **obligatoire** à la commande — reporté en M4 (formulaire) et M6 (création du compte) ; **le PRD réexporté (palette « luxury red & black » sans or, e-mail obligatoire, téléphone désactivé) sera commité dans le dépôt** par le propriétaire
 - [ ] Aucun test E2E navigateur (Playwright) ni anti-bot captcha sur les formulaires publics — captcha Turnstile **M5** ; premier test Playwright du parcours de commande **M6**, suite complète **M11**
 - [x] `npx supabase status -o env` utilisé par les tests arrête imgproxy/pooler du stack local — **traité côté CI** (le job expose les clés par variables d'environnement) ; sans impact fonctionnel
 
@@ -173,7 +173,8 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 6. Teinte exacte du rouge validée pour l'impression (PNG mesuré ≈ #B40000–#C10000 ; palette web : `#A6111B` fonds / `#F6323B` texte).
 
 **Ouvert après M3 :**
-- [ ] **PRD §4** : non réexporté (« or métallique discret » et « e-mail (si utile) » toujours présents) — texte de remplacement dans la checklist ci-dessus, à appliquer de votre côté.
+- [ ] **Comparaison visuelle logo / rouge luxe** : à réaliser par le propriétaire sur `/fr/design-system` — **aucune modification de la palette sans son accord explicite** (les tokens `#A6111B` / `#F6323B` / `#E8323B` sont verrouillés par `tests/contrast.test.ts` et ne bougeront que sur décision).
+- [ ] **PRD réexporté** : version alignée (palette luxury red & black, e-mail obligatoire, téléphone désactivé) à committer dans le dépôt — le fichier actuel garde encore « or métallique discret » et « e-mail (si utile) ».
 - [ ] Photos du coach (attendues en M1) — dernier point de la checklist M3.
 - [ ] Contrôle visuel en navigateur des accents en capitales sur `/fr/design-system` (cmap vérifié automatiquement, rendu à confirmer visuellement).
 
