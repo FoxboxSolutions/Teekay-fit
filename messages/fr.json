@@ -54,7 +54,57 @@
   },
   "home": {
     "title": "TeekayFit",
-    "tagline": "Discipline · Ambition · Brotherhood"
+    "tagline": "Discipline · Ambition · Brotherhood",
+    "metaDescription": "Coach sportif : musculation, boxe anglaise, HYROX, course et trail. Coaching en ligne et en présentiel.",
+    "hero": {
+      "heading": "[À FOURNIR : proposition de valeur du coach]",
+      "baseline": "Discipline · Ambition · Brotherhood",
+      "mediaAlt": "[À FOURNIR : visuel ou vidéo d'introduction du coach]",
+      "ctaCoaching": "Voir les coaching",
+      "videoNote": "Vidéo d'introduction à fournir (10 à 15 s)."
+    },
+    "coach": {
+      "heading": "Le coach",
+      "body": "[À FOURNIR : présentation courte du coach]",
+      "link": "En savoir plus"
+    },
+    "disciplinesSection": {
+      "heading": "Disciplines",
+      "intro": "[À FOURNIR : formulation des disciplines approuvée par le coach]"
+    },
+    "offers": {
+      "heading": "Offres",
+      "sub": "Trois formats selon ton objectif et ton budget.",
+      "remaining": "places restantes",
+      "durationLine": "Durée : {duration}",
+      "currency": "DA",
+      "cta": "Choisir cette offre",
+      "inclusionsTitle": "Inclus",
+      "noOffers": "Aucune offre n'est publiée pour le moment.",
+      "noCapacity": "Disponibilité à confirmer."
+    },
+    "method": {
+      "heading": "Méthode",
+      "body": "[À FOURNIR : comment ça marche — les étapes du parcours client]"
+    },
+    "proofs": {
+      "heading": "Preuves",
+      "empty": "Aucun témoignage ni résultat n'est encore publié."
+    },
+    "faqTeaser": {
+      "heading": "Questions fréquentes",
+      "link": "Voir toute la FAQ",
+      "i1": "[À FOURNIR : question fréquente 1]",
+      "a1": "[À FOURNIR : réponse à la question 1]",
+      "i2": "[À FOURNIR : question fréquente 2]",
+      "a2": "[À FOURNIR : réponse à la question 2]",
+      "i3": "[À FOURNIR : question fréquente 3]",
+      "a3": "[À FOURNIR : réponse à la question 3]"
+    },
+    "finalCta": {
+      "heading": "[À FOURNIR : appel à l'action final]",
+      "body": "Contacte-nous par le formulaire ou écris sur WhatsApp."
+    }
   },
   "error": {
     "title": "Une erreur est survenue",

@@ -12,3 +12,10 @@ export type DisciplineSlug = (typeof DISCIPLINES)[number]["slug"];
 /** Slugs des offres — alignés sur la base (table offers) et les routes /coaching/*. */
 export const OFFER_SLUGS = ["starter", "online", "in-person"] as const;
 export type OfferSlug = (typeof OFFER_SLUGS)[number];
+
+/** Route de vente correspondant à chaque offre. */
+export const OFFER_ROUTES: Record<OfferSlug, string> = {
+  starter: "/coaching/starter",
+  online: "/coaching/online",
+  "in-person": "/coaching/in-person",
+};
