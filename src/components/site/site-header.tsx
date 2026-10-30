@@ -21,7 +21,7 @@ export async function SiteHeader() {
           className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright"
           aria-label={t("brand")}
         >
-          <Image src="/logo-monogram.png" alt="" width={36} height={36} priority />
+          <Image src="/logo-monogram-512.png" alt="" width={36} height={36} priority />
           <Brand />
         </Link>
 
@@ -37,7 +37,7 @@ export async function SiteHeader() {
             <summary className="cursor-pointer list-none text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
               {t("disciplines")}
             </summary>
-            <ul className="absolute right-0 z-40 mt-2 w-48 rounded-card border border-line bg-surface-raised p-2 shadow-pop">
+            <ul className="absolute end-0 z-40 mt-2 w-48 rounded-card border border-line bg-surface-raised p-2 shadow-pop">
               {DISCIPLINES.map((d) => (
                 <li key={d.slug}>
                   <Link

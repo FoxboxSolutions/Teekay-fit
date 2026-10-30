@@ -67,8 +67,8 @@ export default async function HomePage({
               <WhatsAppButton variant="outline" />
             </div>
           </div>
-          <div className="relative aspect-square w-full overflow-hidden rounded-card border border-line bg-surface">
-            <Image src="/logo-monogram.png" alt="" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain p-12 opacity-90" />
+          <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-card border border-line bg-surface">
+            <Image src="/logo-monogram-512.png" alt="" fill sizes="(max-width: 640px) 384px, 384px" className="object-contain p-10 opacity-90" />
             <div className="absolute inset-x-4 bottom-4">
               <ContentText text={t("hero.mediaAlt")} className="text-xs" />
             </div>
