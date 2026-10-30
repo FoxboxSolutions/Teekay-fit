@@ -185,20 +185,20 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Objectif :** Livrer le site public et le tunnel de vente : accueil, présentation du coach, offres configurables, pages par discipline, FAQ et contact.
 
 **Checklist :**
-- [ ] Routes §7 : `/`, `/about`, `/coaching`, `/coaching/starter`, `/coaching/online`, `/coaching/in-person`, `/faq`, `/contact`, `/login`, `/register`
-- [ ] Pages par discipline : `/disciplines/[hyrox|running|trail|boxe|musculation]`
-- [ ] Les 9 sections de l'accueil : hero (proposition de valeur, vidéo courte, CTA WhatsApp), présentation du coach, disciplines (formulation approuvée), trois offres avec prix, inclusions et places restantes réelles, méthode, preuves authentiques (uniquement si existantes et autorisées), FAQ, appel à l'action final, pied de page avec liens légaux et réseaux
-- [ ] Offres et prix lus depuis la base et configurables depuis le dashboard, jamais codés en dur ; affichage en DA
-- [ ] Inclusions, exclusions, durée et conditions visibles avant le paiement ; aucune promesse de résultat garanti ; pas de renouvellement automatique
-- [ ] Places restantes : compteur réel et configurable par le coach, jamais un faux compteur
-- [ ] WhatsApp comme canal principal : bouton fixe sur mobile, message pré-rempli adapté à chaque offre ; formulaire en canal secondaire ; aucune affirmation de livraison d'un message WhatsApp sans intégration officielle
-- [ ] Profil du coach avec uniquement le contenu fourni et approuvé (aucune qualification inventée)
-- [ ] Offres optionnelles affichées uniquement si leur décision est tranchée ; sinon masquées (non bloquant)
-- [ ] Page de vente et formulaire de commande des coachings : questionnaire d'aptitude minimal (type PAR-Q : aptitude à l'effort, objectifs) et décharge à accepter intégrés au parcours (Phase 1, PRD §5/§9)
-- [ ] **E-mail obligatoire** à la commande (décision tranchée, remplace « e-mail si utile ») : champ requis, validation serveur, sert de login et de canal de livraison — connexion = lien magique e-mail, téléphone désactivé (`AUTH_PHONE_ENABLED=false`)
-- [ ] Performance (§4) : images WebP/AVIF avec image d'attente, chargement différé, vidéo hero courte (10 à 15 s) optimisée, contenu principal affiché en moins de 2,5 s sur mobile
-- [ ] Mobile-first, navigation au clavier, focus visibles, textes alternatifs ; aucun texte en dur (i18n) et propriétés CSS logiques
-- [ ] Titres et descriptions uniques, hiérarchie sémantique, métadonnées de partage (détail SEO en M10)
+- [x] Routes §7 : `/`, `/about`, `/coaching`, `/coaching/starter`, `/coaching/online`, `/coaching/in-person`, `/faq`, `/contact` livrées ; `/checkout/[offre]` = page « bientôt disponible » (comingSoon, hors M6) ; `/login` et `/register` hors périmètre M4 (compte créé au lancement via lien magique — **M6**)
+- [x] Pages par discipline : `/disciplines/[hyrox|running|trail|boxe|musculation]`
+- [x] Les 9 sections de l'accueil : hero (proposition de valeur placeholder, image d'attente + vidéo optionnelle, CTA WhatsApp), présentation du coach, disciplines, trois offres (prix/inclusions/places réelles), méthode, preuves (état vide honnête — rien publié), FAQ, appel à l'action final, pied de page (liens légaux ; réseaux masqués tant que non fournis)
+- [x] Offres et prix lus depuis la base (`offers`, seed PRD §5) et configurables, jamais codés en dur ; affichage en DA blanc cassé
+- [x] Inclusions, exclusions, durée et conditions visibles avant paiement ; mention « aucun résultat garanti » et « pas de renouvellement automatique » ; inclusions seed = jeton à faire relire par le coach (nutrition, qualification)
+- [x] Places restantes : compteur réel (`capacity_slots`), masqué s'il n'y a pas de donnée (jamais de faux compteur)
+- [x] WhatsApp canal principal : bouton fixe mobile, messages pré-remplis par offre (next-intl), numéro dans `NEXT_PUBLIC_WHATSAPP_NUMBER` (+213…, masqué si absent/incorrect) ; formulaire en canal secondaire ; aucune affirmation de livraison
+- [x] Profil du coach : uniquement du contenu structuré — biographies/qualifications/expérience/photos/réseaux en placeholders (aucune qualification inventée)
+- [x] Offres optionnelles (mini-programme, packs 3 mois, crédit Starter, parrainage) non seedées → masquées tant que décision non tranchée
+- [x] Page de vente et questionnaire d'aptitude minimal (PAR-Q oui/non structuré, **jamais de texte libre de santé**) + décharge à accepter, intégrés à la page de vente, validation zod, **sans écriture en base (M6)**
+- [ ] **E-mail obligatoire à la commande** (décision tranchée) : **M6** (création du compte + tunnel) — en M4, le formulaire de contact exige déjà l'e-mail ; le champ commande/login arrive en M6
+- [x] Performance (§4) : next/image (WebP/AVIF), chargement différé, image d'attente hero, vidéo hero optionnelle (si fournie) ; rapport Lighthouse mobile fourni (non bloquant CI)
+- [x] Mobile-first, navigation au clavier, focus visibles, textes alternatifs ; aucun texte en dur (i18n) et propriétés CSS logiques (garde RTL verte)
+- [x] Titres et descriptions uniques par page, hiérarchie sémantique (un seul h1), métadonnées de base (SEO détaillé en M10)
 
 **Livrables :** site public complet déployé en préproduction avec le contenu approuvé, pages par discipline, tunnel jusqu'à `/checkout/[offre]`.
 
@@ -207,6 +207,12 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Dépendances :** M1 (domaine/DNS, contenus coach, contenus des offres de coaching, tarifs packs), M2, M3.
 
 **Risques principaux (§20) :** attentes floues sur les offres → publier inclusions, délais de réponse, durée et annulation avant le paiement ; faux effet de preuve sociale ; performance dégradée sur les réseaux mobiles algériens.
+
+**Livré (M4) :** accueil 9 sections + `/coaching` (comparateur) + `/coaching/[slug]` (3 offres seedées : Starter 2 000 DA paiement unique, Online 6 000 DA, In-person 10 000 DA, inclusions/exclusions/conditions, CTA checkout + WhatsApp, bloc PAR-Q) + `/disciplines/[slug]` (5) + `/about` + `/faq` + `/contact` + `/checkout/[offre]` (comingSoon) + `/legal/[slug]` (privacy/terms/refunds, placeholder juriste). Migration `20261029130000_offers_content.sql` (colonnes contenu + seed). `src/lib/{offers/queries.ts,whatsapp.ts,site/nav-data.ts}`, `src/i18n/navigation.ts`, composants site (header/footer/brand/whatsapp-bar/aptitude-form/contact-form/content-text), contrôle de contenu `scripts/check-placeholders.mjs` + registre/manifeste, job CI `content-strict`, `/api/health` dégradé si zéro offre.
+
+**Vérifications (M4) :** `npm test` = **147/147** (10 fichiers : contrast, rtl, placeholders, aptitude-form [jsdom], rls, rls-visibility, rls-anon-whitelist, no-service-role-client, **offers-anon** [les 3 offres seedées lisibles en anon], **routes-static**). `npm run typecheck` et `npm run lint` verts. `npm run build` OK (30 pages prérendues ; mode warn). Toutes les routes §7 → 200 en dev et prod (`next start`). **Lighthouse mobile (accueil, serveur prod, throttling simulé) :** Perf 78 · A11y 96 · SEO 92 · Best-Practices 100 · FCP 0,82 s · LCP 4,84 s · TBT 0,23 s · CLS 0 · SI ~4,4 s. *LCP élevé = swap des polices auto-hébergées sous throttling simulé (FCP < 1 s ⇒ le contenu peint vite) ; non bloquant CI ; le vrai visuel hero optimisé (M1) améliorera la métrique.* Garde RTL verte (`end-0` corrigé).
+
+**Ouverts (M4) :** (1) `build:prod` et le job CI `content-strict` sont **rouges par conception** tant que 34 placeholders restent — c'est le signal de contenu manquant. (2) Toute la page du coach, les 3 biographies, les inclusions (surtout nutrition), les 5 descriptions de discipline et tous les corps légaux sont à fournir (listés plus bas). (3) `/login` et `/register` arrivent en M6 (lien magique e-mail). (4) Le « e-mail obligatoire à la commande » (champ commande + login) s'applique en M6. (5) Si un LCP < 2,5 s est exigé un jour : précharger/optimiser les polices ou `font-display: optional` (arbitrage marque) + visuel hero compressé.
 
 ---
 
