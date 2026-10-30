@@ -60,8 +60,9 @@ describe("AptitudeForm (PAR-Q) — aucune persistance ni réseau", () => {
 
     // Au moins une discipline (case à cocher Radix).
     const checkboxes = screen.getAllByRole("checkbox");
-    await user.click(checkboxes[0]);
-
+    const firstDiscipline = checkboxes[0];
+    if (!firstDiscipline) throw new Error("aucune case à cocher trouvée");
+    await user.click(firstDiscipline);
     // Décharge obligatoire.
     await user.click(screen.getByLabelText(/décharge/i));
 
