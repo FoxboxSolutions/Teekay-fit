@@ -106,6 +106,142 @@
       "body": "Contacte-nous par le formulaire ou écris sur WhatsApp."
     }
   },
+  "coaching": {
+    "metaTitle": "Coaching — TeekayFit",
+    "heading": "Coaching",
+    "sub": "Trois offres : un pack de départ et deux formules de suivi. Les prix et inclusions sont lisibles avant tout engagement.",
+    "cta": "Voir l'offre",
+    "currency": "DA",
+    "noOffers": "Aucune offre n'est publiée pour le moment."
+  },
+  "offer": {
+    "notFound": "Cette offre n'est pas disponible.",
+    "backToCoaching": "Retour aux coaching",
+    "durationLabel": "Durée",
+    "durationLine": "Durée : {duration}",
+    "priceLabel": "Prix",
+    "inclusionsTitle": "Inclus",
+    "exclusionsTitle": "Non inclus",
+    "conditionsTitle": "Conditions",
+    "remaining": "places restantes",
+    "currency": "DA",
+    "noAutoRenew": "Pas de renouvellement automatique : un nouveau mois exige un nouvel achat explicite.",
+    "noResultPromise": "Aucun résultat n'est garanti : le suivi dépend de ton engagement et de ta situation personnelle.",
+    "cta": "Choisir cette offre",
+    "checkoutSoonTitle": "Commande bientôt disponible",
+    "checkoutSoonBody": "Le paiement en ligne arrive prochainement. En attendant, contacte-nous sur WhatsApp pour démarrer."
+  },
+  "questionnaire": {
+    "heading": "Questionnaire d'aptitude",
+    "intro": "Avant de démarrer un coaching, quelques questions structurées pour cadrer ton programme. Aucune donnée de santé en texte libre n'est collectée.",
+    "parqTitle": "Aptitude à l'effort (type PAR-Q)",
+    "parqGuidance": "Si tu réponds oui à une question, consulte un professionnel de santé avant de débuter.",
+    "yes": "Oui",
+    "no": "Non",
+    "q1": "Un médecin t'a-t-il dit que tu avais une affection cardiaque ou une tension élevée ?",
+    "q2": "As-tu des vertiges, un déséquilibre ou une perte de connaissance à l'effort ?",
+    "q3": "Un médecin t'a-t-il dit que tes os ou articulations pourraient être aggravés par l'exercice ?",
+    "q4": "Prends-tu un médicament pour une affection cardiaque ou la tension ?",
+    "q5": "As-tu un problème osseux ou articulaire qui pourrait s'aggraver par l'activité ?",
+    "q6": "Es-tu enceinte ou cela s'applique-t-il à toi ?",
+    "objectiveLabel": "Objectif principal",
+    "objective": {
+      "poids": "Perte de masse grasse",
+      "muscle": "Prise de muscle",
+      "performance": "Performance et conditionnement",
+      "competition": "Préparation compétition",
+      "forme": "Remise en forme"
+    },
+    "experienceLabel": "Expérience",
+    "experience": {
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "advanced": "Avancé"
+    },
+    "disciplinesLabel": "Disciplines pratiquées",
+    "availabilityLabel": "Disponibilité",
+    "availability": {
+      "s23": "2 à 3 séances par semaine",
+      "s45": "4 à 5 séances par semaine",
+      "s6": "6 séances ou plus"
+    },
+    "equipmentLabel": "Environnement d'entraînement",
+    "equipment": {
+      "gym": "Salle équipée",
+      "home": "À la maison",
+      "outdoor": "À l'extérieur"
+    },
+    "waiverLabel": "[À FOURNIR : texte de la décharge accepté avant de démarrer, validé par le propriétaire et un juriste]",
+    "waiverError": "Tu dois accepter la décharge pour continuer.",
+    "submit": "Valider le questionnaire",
+    "success": "Questionnaire complété. Tes réponses seront prises en compte lors de la commande.",
+    "errorSummary": "Certains champs sont incomplets ou invalides."
+  },
+  "about": {
+    "metaTitle": "À propos — TeekayFit",
+    "heading": "À propos du coach",
+    "name": "[À FOURNIR : nom public du coach]",
+    "bioShort": "[À FOURNIR : biographie courte]",
+    "bioLong": "[À FOURNIR : biographie longue — expérience réelle]",
+    "qualificationsTitle": "Qualifications",
+    "qualifications": "[À FOURNIR : qualifications vérifiées du coach]",
+    "experienceTitle": "Expérience",
+    "experience": "[À FOURNIR : expérience réelle du coach]",
+    "photoAlt": "[À FOURNIR : photo du coach]",
+    "socialsTitle": "Réseaux sociaux",
+    "socials": "[À FOURNIR : liens réseaux sociaux]"
+  },
+  "faq": {
+    "metaTitle": "FAQ — TeekayFit",
+    "heading": "Questions fréquentes",
+    "i1": "[À FOURNIR : question fréquente 1]",
+    "a1": "[À FOURNIR : réponse à la question 1]",
+    "i2": "[À FOURNIR : question fréquente 2]",
+    "a2": "[À FOURNIR : réponse à la question 2]",
+    "i3": "[À FOURNIR : question fréquente 3]",
+    "a3": "[À FOURNIR : réponse à la question 3]",
+    "i4": "[À FOURNIR : question fréquente 4]",
+    "a4": "[À FOURNIR : réponse à la question 4]"
+  },
+  "contact": {
+    "metaTitle": "Contact — TeekayFit",
+    "heading": "Contact",
+    "intro": "Écris-nous ou passe par WhatsApp. Le formulaire est un canal secondaire.",
+    "nameLabel": "Nom",
+    "emailLabel": "E-mail",
+    "emailError": "Une adresse e-mail valide est requise.",
+    "phoneLabel": "Téléphone",
+    "phoneError": "Un numéro de téléphone est requis.",
+    "messageLabel": "Message",
+    "messageError": "Le message ne peut pas être vide.",
+    "nameError": "Le nom est requis.",
+    "submit": "Envoyer",
+    "sentNote": "Le formulaire n'est pas encore connecté : l'envoi sera actif prochainement.",
+    "errorSummary": "Certains champs sont invalides."
+  },
+  "legal": {
+    "privacy": {
+      "metaTitle": "Confidentialité — TeekayFit",
+      "heading": "Politique de confidentialité",
+      "body": "[À FOURNIR : texte validé par le propriétaire et un juriste]"
+    },
+    "terms": {
+      "metaTitle": "Conditions générales — TeekayFit",
+      "heading": "Conditions générales d'utilisation",
+      "body": "[À FOURNIR : texte validé par le propriétaire et un juriste]"
+    },
+    "refunds": {
+      "metaTitle": "Remboursements — TeekayFit",
+      "heading": "Politique de remboursement",
+      "body": "[À FOURNIR : texte validé par le propriétaire et un juriste]"
+    }
+  },
+  "disciplines": {
+    "metaTitle": "{name} — TeekayFit",
+    "intro": "[À FOURNIR : présentation de la discipline {name} approuvée par le coach]",
+    "cta": "Voir les coaching",
+    "notFound": "Cette discipline n'existe pas."
+  },
   "error": {
     "title": "Une erreur est survenue",
     "retry": "Réessayer"
