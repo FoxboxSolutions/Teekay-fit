@@ -20,9 +20,9 @@ export default async function HomePage({
 function Home() {
   const t = useTranslations("home");
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4">
+    <main className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
       <h1 className="text-4xl font-bold">{t("title")}</h1>
-      <p className="text-sm text-neutral-400">{t("tagline")}</p>
+      <p className="text-sm text-ink-muted">{t("tagline")}</p>
     </main>
   );
 }

@@ -1,4 +1,57 @@
 {
+  "brand": {
+    "name": "Teekay",
+    "accent": "Fit"
+  },
+  "nav": {
+    "brand": "TeekayFit — accueil",
+    "primary": "Navigation principale",
+    "menu": "Ouvrir le menu",
+    "home": "Accueil",
+    "coaching": "Coaching",
+    "disciplines": "Disciplines",
+    "disciplinesList": {
+      "hyrox": "HYROX",
+      "running": "Course",
+      "trail": "Trail",
+      "boxe": "Boxe anglaise",
+      "musculation": "Musculation"
+    },
+    "about": "À propos",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "footer": {
+    "tagline": "Discipline · Ambition · Brotherhood",
+    "coaching": "Coaching",
+    "offers": {
+      "starter": "Starter",
+      "online": "Coaching en ligne",
+      "in-person": "Coaching en présentiel"
+    },
+    "disciplines": "Disciplines",
+    "disciplinesList": {
+      "hyrox": "HYROX",
+      "running": "Course",
+      "trail": "Trail",
+      "boxe": "Boxe anglaise",
+      "musculation": "Musculation"
+    },
+    "legal": "Informations légales",
+    "privacy": "Confidentialité",
+    "terms": "Conditions générales",
+    "refunds": "Remboursements",
+    "rights": "© {year} TeekayFit. Tous droits réservés."
+  },
+  "whatsapp": {
+    "label": "WhatsApp",
+    "messages": {
+      "default": "Bonjour TeekayFit, je souhaite des informations sur vos coaching.",
+      "starter": "Bonjour TeekayFit, je suis intéressé par l'offre Starter (2 000 DA).",
+      "online": "Bonjour TeekayFit, je suis intéressé par le Coaching en ligne (6 000 DA/mois).",
+      "inPerson": "Bonjour TeekayFit, je suis intéressé par le Coaching en présentiel (10 000 DA/mois)."
+    }
+  },
   "home": {
     "title": "TeekayFit",
     "tagline": "Discipline · Ambition · Brotherhood"
