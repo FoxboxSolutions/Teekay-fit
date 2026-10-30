@@ -100,8 +100,8 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Objectif :** Déployer la direction visuelle « luxury red & black » issue du logo — palette, typographies, tokens et composants accessibles — et aligner le PRD sur cette direction.
 
 **Checklist :**
-- [ ] Analyse du logo TeekayFit : monogramme « TK » avec silhouette d'aigle, mot-symbole « TEEKAY » blanc/texturé + « FIT » rouge, baseline « DISCIPLINE · AMBITION · BROTHERHOOD »
-- [ ] Palette du design system « luxury red & black » (le logo fait foi, aucune couleur or) :
+- [x] Analyse du logo TeekayFit : monogramme « TK » avec silhouette d'aigle, mot-symbole « TEEKAY » blanc/texturé + « FIT » rouge, baseline « DISCIPLINE · AMBITION · BROTHERHOOD » (PNG 1254×1254 fond transparent ; rouge pur mesuré ≈ #B40000–#C10000, blanc pur #FFFFFF — écarts vs palette documentés plus bas)
+- [x] Palette du design system « luxury red & black » (le logo fait foi, aucune couleur or) :
   - Fond principal : noir profond `#0A0A0A`
   - Surfaces : `#121212` et `#1A1A1A`
   - Bordures : `#2A2A2A`
@@ -110,18 +110,18 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
   - Rouge luxe (fonds de bouton, badges, bandeaux) : `#A6111B`
   - Rouge vif (texte rouge, « FIT », liens, icônes et états actifs) : `#E8323B` — **texte : `#F6323B`** (ajustement minimal, voir ratios ci-dessous)
   - Bordeaux (survol, dégradés, bordures rouges) : `#7A0C13`
-- [ ] Règles d'usage : rouge rare — moins de 10 % de la surface d'une page, réservé aux CTA principaux, au mot « FIT », aux filets fins et aux états actifs ; prix toujours en blanc cassé, jamais en rouge ; interdit `#A6111B` en texte sur fond noir ; interdit texte rouge sur fond rouge ; aucun dégradé décoratif hors du rouge/bordeaux du hero ; contraste minimum 4,5:1 pour tout texte
-- [ ] Ajustement de contraste signalé : `#E8323B` échoue comme texte sur `#121212` (4,42:1) et `#1A1A1A` (4,10:1) ; teinte minimale retenue `#F6323B` (canal R +14, même teinte) — 5,13:1 / 4,85:1 / 4,51:1 sur les trois fonds ; `#E8323B` reste valable en texte sur `#0A0A0A` (4,67:1) et pour les éléments non textuels (icônes, filets, « FIT » : seuil 3:1 atteint partout)
-- [ ] Définir les tokens (variables CSS et configuration Tailwind) pour chaque couleur de la palette
-- [ ] Créer une page ou un document de référence du design system avec les couples texte/fond validés et leurs ratios de contraste (tableau ci-dessous)
-- [ ] Vérifier que le logo reste lisible sur `#0A0A0A`
-- [ ] Texture grunge réservée au logo et aux visuels hero, jamais au texte de l'interface ni aux composants
-- [ ] Typographies (§4) : une police condensée en gras pour les titres, une police sobre pour le texte
-- [ ] Composants accessibles : navigation au clavier, focus visibles, libellés et erreurs de formulaire explicites, textes alternatifs, respect de « réduire les animations »
-- [ ] Direction premium, athlétique, minimale ; aucune animation excessive ; jamais de photos génériques, faux compteurs ou témoignages non vérifiés
-- [ ] Kit de marque minimal : monogramme, palette, typographies, modèles Instagram et stories cohérents
-- [ ] **Mettre à jour le PRD §4** : remplacer « noir profond, blanc, or métallique discret » par : « premium, athlétique, minimale ; palette « luxury red & black » : noir profond `#0A0A0A` (fond), surfaces `#121212` et `#1A1A1A`, bordures `#2A2A2A`, texte principal blanc cassé `#F2EFEA`, texte secondaire gris chaud `#A8A29E`, rouge luxe `#A6111B` (fonds de bouton, badges, bandeaux), rouge vif `#E8323B` (« FIT », liens, icônes, états actifs ; texte rouge en `#F6323B` pour respecter 4,5:1), bordeaux `#7A0C13` (survol, dégradés) ; rouge limité à moins de 10 % de la surface d'une page ; aucune couleur or »
-- [ ] Photos authentiques du coach uniquement (contenus validés en M1)
+- [x] Règles d'usage : rouge rare — moins de 10 % de la surface d'une page, réservé aux CTA principaux, au mot « FIT », aux filets fins et aux états actifs ; prix toujours en blanc cassé, jamais en rouge ; interdit `#A6111B` en texte sur fond noir ; interdit texte rouge sur fond rouge ; aucun dégradé décoratif hors du rouge/bordeaux du hero ; contraste minimum 4,5:1 pour tout texte (règles publiées dans `/fr/design-system` + commentaire de `globals.css`)
+- [x] Ajustement de contraste signalé : `#E8323B` échoue comme texte sur `#121212` (4,42:1) et `#1A1A1A` (4,10:1) ; teinte minimale retenue `#F6323B` (canal R +14, même teinte) — 5,13:1 / 4,85:1 / 4,51:1 sur les trois fonds ; `#E8323B` reste valable en texte sur `#0A0A0A` (4,67:1) et pour les éléments non textuels (icônes, filets, « FIT » : seuil 3:1 atteint partout) — verrouillé par `tests/contrast.test.ts`
+- [x] Définir les tokens (variables CSS et configuration Tailwind) pour chaque couleur de la palette (thème Tailwind 4 `@theme` dans `globals.css` : couleurs, typographies, rayons, ombres, durées + familles ; source unique partagée avec `src/lib/design-system/palette.ts`)
+- [x] Créer une page ou un document de référence du design system avec les couples texte/fond validés et leurs ratios de contraste (tableau ci-dessous) — page `/fr/design-system` (dev-only, 404 en production, `robots: noindex`), ratios recalculés en direct
+- [x] Vérifier que le logo reste lisible sur `#0A0A0A` (affiché sur fond `#0A0A0A` dans la section logo de `/fr/design-system`)
+- [x] Texture grunge réservée au logo et aux visuels hero, jamais au texte de l'interface ni aux composants (règle publiée dans `/fr/design-system`)
+- [x] Typographies (§4) : une police condensée en gras pour les titres, une police sobre pour le texte — Barlow Condensed 600/700 + Inter variable, next/font auto-hébergé, latin + latin-ext, `display: swap`
+- [x] Composants accessibles : navigation au clavier, focus visibles, libellés et erreurs de formulaire explicites, textes alternatifs, respect de « réduire les animations » (12 composants Radix, `Field` relie erreur via `aria-describedby`, icônes `aria-hidden`, `prefers-reduced-motion` global)
+- [x] Direction premium, athlétique, minimale ; aucune animation excessive ; jamais de photos génériques, faux compteurs ou témoignages non vérifiés
+- [x] Kit de marque minimal : monogramme, palette, typographies, modèles Instagram et stories cohérents (modèles Instagram/stories réalisés hors dépôt, comme convenu ; monogramme + lockup servis dans `public/`, favicons générés)
+- [ ] **Mettre à jour le PRD §4** : remplacer « noir profond, blanc, or métallique discret » par : « premium, athlétique, minimale ; palette « luxury red & black » : noir profond `#0A0A0A` (fond), surfaces `#121212` et `#1A1A1A`, bordures `#2A2A2A`, texte principal blanc cassé `#F2EFEA`, texte secondaire gris chaud `#A8A29E`, rouge luxe `#A6111B` (fonds de bouton, badges, bandeaux), rouge vif `#E8323B` (« FIT », liens, icônes, états actifs ; texte rouge en `#F6323B` pour respecter 4,5:1), bordeaux `#7A0C13` (survol, dégradés) ; rouge limité à moins de 10 % de la surface d'une page ; aucune couleur or » — **RESTE OUVERT : le PRD actuel n'a pas été réexporté (contient encore « or métallique discret » et « e-mail (si utile) »), à appliquer de votre côté**
+- [ ] Photos authentiques du coach uniquement (contenus validés en M1 — attendus en M1)
 
 **Contrastes vérifiés (calcul WCAG réel, ratio = (L1 + 0,05) / (L2 + 0,05)) :**
 
@@ -153,6 +153,29 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Dépendances :** direction « luxury red & black » tranchée (décision de cadrage : le logo fait foi) ; M1 (photos et contenus approuvés).
 
 **Risques principaux :** divergences image entre PRD et design system si §4 n'est pas mis à jour ; texte rouge retombant sous 4,5:1 si l'ajustement `#F6323B` n'est pas appliqué sur les surfaces (atténuation : tokens de contraste vérifiés) ; dérive vers du grunge sur l'interface (atténuation : règle stricte logo/hero uniquement).
+
+**Livré en M3 (commits) :**
+- `0856808` — tokens (thème Tailwind 4 `@theme` : couleurs, typographies, rayons, ombres, durées) + `tests/contrast.test.ts` (30 assertions WCAG : ≥ 4,5:1 texte, ≥ 3:1 non textuel, paires interdites confirmées) ; palette CSS ↔ palette TS verrouillées ensemble
+- `dc6d47e` — polices next/font auto-hébergées : Barlow Condensed 600/700 (titres) + Inter variable (texte), latin + latin-ext, `display: swap`, variables `--font-*`
+- `1fd4f66` — composants de base : Button (primaire/secondaire/fantôme), Input, Textarea, Field (libellé + erreur reliée `aria-describedby`), Checkbox, Radio, Card, Badge ; cibles 44px ; utilitaires `duration-*` liés aux tokens
+- `7a58c9f` — composants d'interaction : Select, Dialog (overlay plein écran en propriétés logiques), Toast, Tabs, Accordion (primitives Radix, aucun texte en dur, icônes `aria-hidden`)
+- `3414283` — page `/fr/design-system` : dev-only (404 en production, `robots: noindex`), tokens, specimens typographiques, galerie de composants, tableau des contrastes calculé en direct, règles d'usage, logo sur `#0A0A0A`
+- `9901129` — kit de marque : `src/app/icon.png` + `src/app/apple-icon.png` (monogramme TK : détection automatique de la frontière mot-symbole, bbox + canevas transparent), `public/logo-monogram.png`, `public/logo-full.png`
+
+**Vérifications M3 :** 70 tests verts (dont 30 contraste + règle RTL stricte) ; lint et typecheck propres ; build OK ; accents É È À Ç Œ présents dans les `cmap` des woff2 livrés (contrôle automatique fonttools sur les fichiers du build) ; `/fr/design-system` = 200 en dev, 404 en production avec meta `noindex`.
+
+**À demander au graphiste (livrables vectoriels manquants) :**
+1. Monogramme TK isolé en SVG/PDF — le crop PNG actuel coupe la pointe de l'aile droite à la jonction avec le mot-symbole (y ≈ 805 sur 1254).
+2. Lockup horizontal complet en vecteur (mot-symbole + baseline) pour en-tête et pied de page nets à toute taille.
+3. Variantes de couleur : actuelle, blanc 100 %, noir 100 %, aplat `#A6111B`.
+4. Version « propre » sans texture grunge (favicon ≤ 32 px, filigranes — la texture disparaît à petite taille).
+5. Nom et licence de la police du mot-symbole (wordmark actuellement uniquement raster avec grunge).
+6. Teinte exacte du rouge validée pour l'impression (PNG mesuré ≈ #B40000–#C10000 ; palette web : `#A6111B` fonds / `#F6323B` texte).
+
+**Ouvert après M3 :**
+- [ ] **PRD §4** : non réexporté (« or métallique discret » et « e-mail (si utile) » toujours présents) — texte de remplacement dans la checklist ci-dessus, à appliquer de votre côté.
+- [ ] Photos du coach (attendues en M1) — dernier point de la checklist M3.
+- [ ] Contrôle visuel en navigateur des accents en capitales sur `/fr/design-system` (cmap vérifié automatiquement, rendu à confirmer visuellement).
 
 ---
 
