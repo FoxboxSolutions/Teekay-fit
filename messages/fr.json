@@ -6,5 +6,140 @@
   "error": {
     "title": "Une erreur est survenue",
     "retry": "Réessayer"
+  },
+  "designSystem": {
+    "metaTitle": "Design system — TeekayFit",
+    "title": "Design system",
+    "subtitle": "Tokens, composants et règles d'usage « luxury red & black » — source unique de l'interface.",
+    "devBanner": "Réservé au développement : cette page renvoie une 404 en production et est non indexée.",
+    "logoSection": {
+      "heading": "Logo & écarts de palette",
+      "alt": "Logo TeekayFit : monogramme TK à l'aigle, mot-symbole TEEKAYFIT, baseline Discipline, Ambition, Brotherhood",
+      "onCanvas": "Contrôle : le logo est affiché sur le fond principal #0A0A0A (fichier source à fond transparent).",
+      "deviation": "Écarts relevés sur le fichier source : rouge pur ≈ #BA0000 (plutôt que #A6111B), blanc pur #FFFFFF (plutôt que #F2EFEA), texture grunge. La palette conserve #A6111B pour les fonds et #F6323B pour le texte afin de tenir 4,5:1."
+    },
+    "colors": {
+      "heading": "Couleurs",
+      "rule": "Rouge rare : moins de 10 % de la surface d'une page.",
+      "tokens": {
+        "canvas": "Fond principal de page",
+        "surface": "Panneaux, cartes et champs",
+        "surface-raised": "Cartes surélevées et menus",
+        "line": "Filets décoratifs et séparateurs",
+        "line-input": "Bordures de champs (≥ 3:1)",
+        "ink": "Texte principal, titres et prix",
+        "ink-muted": "Texte secondaire et aides",
+        "red-lux": "Fonds de boutons, badges et bandeaux",
+        "red-bright": "Filets, icônes et états actifs",
+        "red-text": "Texte rouge conforme (4,5:1)",
+        "wine": "Survol et dégradés"
+      }
+    },
+    "typography": {
+      "heading": "Typographie",
+      "displayLabel": "Titres — Barlow Condensed 600/700, auto-hébergée, latin + latin-ext, display swap",
+      "headingSample": "Ambition, discipline & succès à haut niveau",
+      "accentSample": "Accents en capitales : É È À Ç Œ",
+      "bodyLabel": "Texte — Inter variable",
+      "bodySample": "TeekayFit accompagne les athlètes hybrides avec une méthode structurée : évaluation, programmation, suivi hebdomadaire et ajustements réalistes. Les prix s'affichent en dinar algérien, toujours en blanc cassé.",
+      "arabicNote": "Famille déclarée dans les tokens mais non chargée : IBM Plex Sans Arabic (aucun contenu arabe au lancement)."
+    },
+    "buttons": {
+      "heading": "Boutons",
+      "primary": "Primaire",
+      "secondary": "Secondaire",
+      "ghost": "Fantôme",
+      "disabled": "Désactivé",
+      "small": "Petit"
+    },
+    "forms": {
+      "heading": "Formulaires",
+      "nameLabel": "Nom complet",
+      "namePlaceholder": "Votre nom",
+      "emailLabel": "E-mail",
+      "emailError": "Adresse e-mail invalide",
+      "messageLabel": "Message",
+      "messagePlaceholder": "Décrivez votre objectif…",
+      "selectLabel": "Offre choisie",
+      "selectPlaceholder": "Choisir une offre",
+      "offerStarter": "Starter",
+      "offerOnline": "Coaching en ligne",
+      "offerInPerson": "Coaching présentiel",
+      "terms": "J'accepte les conditions générales",
+      "modeLabel": "Mode de coaching",
+      "modeInPerson": "Présentiel",
+      "modeOnline": "En ligne"
+    },
+    "surfaces": {
+      "heading": "Cartes, badges & prix",
+      "cardTitle": "Starter",
+      "badgeRed": "Places limitées",
+      "price": "4 500 DA",
+      "cardBody": "Prix toujours en blanc cassé, jamais en rouge. Le badge rouge est l'un des rares emplois autorisés du rouge."
+    },
+    "dialogSection": {
+      "heading": "Boîte de dialogue",
+      "open": "Ouvrir la boîte de dialogue",
+      "title": "Prêt à commencer ?",
+      "description": "Exemple accessible : titre, description et fermeture libellée.",
+      "body": "Le focus est piégé dans la boîte, Échap ferme, et l'arrière-plan est masqué pour les lecteurs d'écran.",
+      "action": "Continuer",
+      "close": "Fermer"
+    },
+    "toastSection": {
+      "heading": "Notification",
+      "show": "Afficher une notification",
+      "title": "Progression enregistrée",
+      "description": "Votre mise à jour a bien été prise en compte.",
+      "close": "Fermer la notification"
+    },
+    "tabs": {
+      "heading": "Onglets",
+      "ariaLabel": "Exemple d'onglets",
+      "offers": "Offres",
+      "offersContent": "Trois offres lisibles depuis la base, configurables par le coach, avec prix, inclusions et places restantes réelles.",
+      "method": "Méthode",
+      "methodContent": "Évaluation, programmation, suivi hebdomadaire et ajustements : aucune promesse de résultat garanti.",
+      "faq": "FAQ",
+      "faqContent": "Les questions fréquentes sont répondues avant l'achat, avec un lien vers la page complète."
+    },
+    "accordion": {
+      "heading": "Accordéon",
+      "ariaLabel": "Exemple d'accordéon",
+      "question1": "Combien de places restantes ?",
+      "answer1": "Le compteur affiche les places réelles de chaque créneau, jamais un faux compteur.",
+      "question2": "Comment démarrer ?",
+      "answer2": "Choisissez une offre, réglez, puis le compte est créé automatiquement par lien magique."
+    },
+    "contrast": {
+      "heading": "Contrastes",
+      "intro": "Ratios calculés en direct selon WCAG 2.1 : (L1 + 0,05) / (L2 + 0,05).",
+      "pair": "{fg} sur {bg} — {rule}",
+      "columns": {
+        "pair": "Paire texte sur fond",
+        "ratio": "Ratio",
+        "verdict": "Verdict"
+      },
+      "pass": "Conforme",
+      "fail": "Non conforme",
+      "groups": {
+        "text": "Textes autorisés — ≥ 4,5:1",
+        "forbidden": "Paires interdites — doivent rester sous 4,5:1",
+        "nonText": "Éléments non textuels — ≥ 3:1"
+      }
+    },
+    "rules": {
+      "heading": "Règles d'usage",
+      "items": {
+        "redShare": "Rouge rare : moins de 10 % de la surface d'une page, réservé aux CTA principaux, au mot « FIT », aux filets fins et aux états actifs.",
+        "prices": "Prix toujours en blanc cassé #F2EFEA, jamais en rouge.",
+        "noRedOnBlack": "#A6111B jamais utilisé en texte sur fond noir.",
+        "noRedOnRed": "Jamais de texte rouge sur fond rouge ; sur fond sombre, le texte rouge utilise #F6323B.",
+        "grunge": "Texture grunge réservée au logo et aux visuels hero, jamais aux composants d'interface.",
+        "i18n": "Aucun texte en dur : tous les libellés passent par next-intl.",
+        "rtl": "Propriétés CSS uniquement logiques (ms-, ps-, start-) pour préserver le RTL.",
+        "motion": "Animations sobres, neutralisées si l'utilisateur demande « réduire les animations »."
+      }
+    }
   }
 }
