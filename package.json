@@ -7,12 +7,15 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/check-placeholders.mjs && next build",
+    "build:prod": "node scripts/check-placeholders.mjs --strict && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:placeholders": "node scripts/check-placeholders.mjs",
+    "check:placeholders:strict": "node scripts/check-placeholders.mjs --strict",
     "supabase": "supabase"
   },
   "dependencies": {

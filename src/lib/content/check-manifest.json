@@ -1,0 +1,11 @@
+{
+  "$comment": "Manifeste lu par scripts/check-placeholders.mjs et par l'app. Les routes « comingSoon » font échouer le build de production (build:prod) tant qu'elles ne sont pas livrées.",
+  "comingSoonRoutes": [
+    "/checkout/[offre]"
+  ],
+  "legalRoutes": [
+    { "path": "/legal/privacy", "messageKey": "legal.privacy" },
+    { "path": "/legal/terms", "messageKey": "legal.terms" },
+    { "path": "/legal/refunds", "messageKey": "legal.refunds" }
+  ]
+}
