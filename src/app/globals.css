@@ -1,10 +1,85 @@
 @import "tailwindcss";
 
+/*
+ * TeekayFit — design system « luxury red & black » (source unique des tokens)
+ * Règles : rouge < 10 % de la surface d'une page ; prix en blanc cassé ;
+ * #A6111B jamais en texte sur noir ; jamais de texte rouge sur fond rouge ;
+ * contraste texte ≥ 4,5:1 (vérifié par tests/contrast.test.ts) ;
+ * texture grunge réservée au logo et aux visuels hero.
+ */
+
 :root {
   color-scheme: dark;
 }
 
+@theme {
+  --color-canvas: #0a0a0a;
+  --color-surface: #121212;
+  --color-surface-raised: #1a1a1a;
+  --color-line: #2a2a2a;
+  --color-line-input: #666666;
+  --color-ink: #f2efea;
+  --color-ink-muted: #a8a29e;
+  --color-red-lux: #a6111b;
+  --color-red-bright: #e8323b;
+  --color-red-text: #f6323b;
+  --color-wine: #7a0c13;
+
+  --font-display: var(--font-barlow-condensed, "Barlow Condensed"),
+    ui-sans-serif, sans-serif;
+  --font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui, sans-serif;
+  /* Déclarée mais non chargée : aucun contenu arabe au lancement */
+  --font-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", Tahoma, sans-serif;
+
+  --radius-control: 0.5rem;
+  --radius-card: 1rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: inset 0 1px 0 0 rgb(255 255 255 / 0.04),
+    0 10px 30px -18px rgb(0 0 0 / 0.8);
+  --shadow-pop: 0 24px 60px -20px rgb(0 0 0 / 0.75);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-in: fade-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 body {
-  background: #0a0a0a;
-  color: #f2efea;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-red-text);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-red-lux);
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
