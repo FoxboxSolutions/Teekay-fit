@@ -76,14 +76,14 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [x] Sauvegardes de la base configurées (test de restauration en M11)
 
 **Points ouverts (fin M2) :**
-- Tests RLS exécutés en local avec `supabase start` (Docker requis) — à brancher en CI sur la préproduction avant M11
-- Limitation de débit actuellement en mémoire par instance (`rate-limit.ts`) : à passer sur Redis/Postgres partagé dès que plusieurs instances servent l'app
-- Purges (`purge_expired_rate_limits`, questionnaire santé 24 mois) : fonctions prêtes mais à planifier (pg_cron ou cron hébergeur)
-- CSRF : vérification d'origine active seulement si `NEXT_PUBLIC_APP_URL` est défini en environnement
-- Enrôlement MFA admin : routes prêtes (`/api/admin/mfa/*`) mais sans interface ni obligation — à imposer au dashboard (M9)
-- Connexion téléphone : code prêt mais désactivé par défaut (`AUTH_PHONE_ENABLED=false`) — décision d'activation à trancher
-- Aucun test E2E navigateur (Playwright) ni anti-bot captcha sur les formulaires publics — à arbitrer en M10/M11
-- `npx supabase status -o env` utilisé par les tests arrête imgproxy/pooler du stack local (sans impact sur les tests)
+- [x] Tests RLS exécutés en local avec `supabase start` (Docker requis) — **traité** : CI GitHub Actions livrée (lint, typecheck, tests + job `supabase start`/`db reset`/RLS sur push et PR)
+- [ ] Limitation de débit actuellement en mémoire par instance (`rate-limit.ts`) : à passer sur Redis/Postgres partagé dès que plusieurs instances servent l'app — **M6** (avant le tunnel de commande)
+- [ ] Purges (`purge_expired_rate_limits`, questionnaire santé 24 mois) : fonctions prêtes mais à planifier (pg_cron ou cron hébergeur) — **M12**
+- [ ] CSRF : vérification d'origine active seulement si `NEXT_PUBLIC_APP_URL` est défini en environnement — **M11** (checklist prod)
+- [ ] Enrôlement MFA admin : routes prêtes (`/api/admin/mfa/*`) mais sans interface ni obligation — à imposer au dashboard — **M9**
+- [x] Connexion téléphone — **décision tranchée** : lien magique e-mail = mode principal, téléphone **désactivé au lancement** (`AUTH_PHONE_ENABLED=false`) ; e-mail **obligatoire** à la commande — reporté en M4 (formulaire) et M6 (création du compte) ; le PRD « e-mail si utile » est mis à jour par le propriétaire
+- [ ] Aucun test E2E navigateur (Playwright) ni anti-bot captcha sur les formulaires publics — captcha Turnstile **M5** ; premier test Playwright du parcours de commande **M6**, suite complète **M11**
+- [x] `npx supabase status -o env` utilisé par les tests arrête imgproxy/pooler du stack local — **traité côté CI** (le job expose les clés par variables d'environnement) ; sans impact fonctionnel
 
 **Livrables :** dépôt initial, schéma migré, authentification fonctionnelle, environnements séparés, socle i18n/CSS logiques.
 
@@ -171,6 +171,7 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [ ] Profil du coach avec uniquement le contenu fourni et approuvé (aucune qualification inventée)
 - [ ] Offres optionnelles affichées uniquement si leur décision est tranchée ; sinon masquées (non bloquant)
 - [ ] Page de vente et formulaire de commande des coachings : questionnaire d'aptitude minimal (type PAR-Q : aptitude à l'effort, objectifs) et décharge à accepter intégrés au parcours (Phase 1, PRD §5/§9)
+- [ ] **E-mail obligatoire** à la commande (décision tranchée, remplace « e-mail si utile ») : champ requis, validation serveur, sert de login et de canal de livraison — connexion = lien magique e-mail, téléphone désactivé (`AUTH_PHONE_ENABLED=false`)
 - [ ] Performance (§4) : images WebP/AVIF avec image d'attente, chargement différé, vidéo hero courte (10 à 15 s) optimisée, contenu principal affiché en moins de 2,5 s sur mobile
 - [ ] Mobile-first, navigation au clavier, focus visibles, textes alternatifs ; aucun texte en dur (i18n) et propriétés CSS logiques
 - [ ] Titres et descriptions uniques, hiérarchie sémantique, métadonnées de partage (détail SEO en M10)
@@ -200,6 +201,7 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [ ] Recherche par nom et téléphone ; filtres par statut, offre, source, relance
 - [ ] Numéros normalisés pour la détection de doublons ; fusion par revue humaine uniquement
 - [ ] Limitation de débit sur quiz et leads ; aucune donnée stockée sans consentement
+- [ ] Anti-bot : Cloudflare Turnstile (ou équivalent) sur le formulaire de contact et le quiz, en plus de la limitation de débit (décision tranchée, reportée depuis M2)
 - [ ] Aucun message marketing sans consentement et base légale
 - [ ] Événements `quiz_start`, `quiz_complete`, `submit_lead`, `whatsapp_click` (détail en M10)
 
@@ -223,8 +225,9 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [ ] Commande avec identifiant unique et référence lisible (ex. `TKF-2610-0042`)
 - [ ] Copie figée de l'offre, du prix, de la devise et des conditions enregistrée à chaque commande
 - [ ] Statut commande `pending_payment` et paiement `pending` à la création ; prochaines étapes affichées
-- [ ] Informations collectées minimales : nom, téléphone, e-mail si utile, offre, informations d'onboarding nécessaires, acceptation des conditions (version et horodatage en `consents`), mode de paiement ; pour les coachings : questionnaire minimal (PAR-Q) et décharge acceptée (tracée en `consents`)
-- [ ] Création automatique du compte client après la commande (lien magique par e-mail ou connexion par téléphone)
+- [ ] Informations collectées minimales : nom, téléphone, **e-mail obligatoire** (décision tranchée, remplace « si utile »), offre, informations d'onboarding nécessaires, acceptation des conditions (version et horodatage en `consents`), mode de paiement ; pour les coachings : questionnaire minimal (PAR-Q) et décharge acceptée (tracée en `consents`)
+- [ ] Création automatique du compte client après la commande : **lien magique par e-mail (mode principal et unique au lancement)** — la connexion téléphone reste désactivée (`AUTH_PHONE_ENABLED=false`)
+- [ ] Premier test Playwright du parcours de commande (page d'offre → formulaire → création de compte ; la suite E2E complète est en M11)
 - [ ] Transitions de statuts (`pending_payment`, `paid`, `cancelled`, `refunded` / `pending`, `verifying`, `confirmed`, `failed`, `rejected`, `refunded`) gérées côté serveur et auditées
 - [ ] Un paiement en attente, échoué, rejeté ou annulé n'ouvre jamais d'accès (structure de droits prête)
 - [ ] Couche fournisseur indépendante : création du paiement, vérification serveur, traitement des notifications authentifiées, enregistrement de la référence, gestion des cas échoué, annulé, retardé et dupliqué, réconciliation avec la commande
@@ -374,6 +377,7 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [ ] Revue secrets : rien en Git, rien côté client, rien dans les journaux
 - [ ] Environnements dev/préprod/prod distincts, migrations à jour
 - [ ] Tableaux de bord vérifiés sans aucune donnée fictive
+- [ ] Tests E2E Playwright complets (le premier test du parcours de commande est livré dès M6) : navigation, commande, paiement, livraison, accès admin
 
 **Livrables :** rapports de tests (sécurité, paiement, mobile), procédure de restauration validée, préproduction stabilisée.
 
