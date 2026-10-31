@@ -68,7 +68,9 @@ export async function verifyTurnstile(
     return refuse("turnstile_jeton_refuse", { errorCodes: payload["error-codes"] ?? [] });
   }
 
-  const expected = appHostname();
+  // Les clés de test renvoient toujours le hostname codé « example.com » :
+  // la vérification n'a de sens qu'avec les vraies clés (réponse réelle).
+  const expected = secret === TURNSTILE_TEST_SECRET_KEY ? null : appHostname();
   if (expected && payload.hostname && payload.hostname !== expected) {
     return refuse("turnstile_hostname_inattendu", {
       attendu: expected,
