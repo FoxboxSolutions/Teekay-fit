@@ -64,6 +64,12 @@ export default async function HomePage({
               >
                 {t("hero.ctaCoaching")}
               </Link>
+              <Link
+                href="/quiz"
+                className="inline-flex min-h-11 items-center justify-center rounded-control border border-line-input px-5 py-3 text-sm font-semibold text-ink transition-colors duration-fast hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright"
+              >
+                {t("hero.ctaQuiz")}
+              </Link>
               <WhatsAppButton variant="outline" />
             </div>
           </div>

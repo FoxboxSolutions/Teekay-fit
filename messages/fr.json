@@ -19,6 +19,7 @@
     },
     "about": "À propos",
     "faq": "FAQ",
+    "quiz": "Quiz",
     "contact": "Contact"
   },
   "footer": {
@@ -61,6 +62,7 @@
       "baseline": "Discipline · Ambition · Brotherhood",
       "mediaAlt": "[À FOURNIR : visuel ou vidéo d'introduction du coach]",
       "ctaCoaching": "Voir les coaching",
+      "ctaQuiz": "Trouve ton programme",
       "videoNote": "Vidéo d'introduction à fournir (10 à 15 s)."
     },
     "coach": {
@@ -218,6 +220,85 @@
     "submit": "Envoyer",
     "sentNote": "Le formulaire n'est pas encore connecté : l'envoi sera actif prochainement.",
     "errorSummary": "Certains champs sont invalides."
+  },
+  "quiz": {
+    "metaTitle": "Quiz : trouve ton programme — TeekayFit",
+    "heading": "Trouve ton programme",
+    "intro": "Six questions rapides pour identifier le programme adapté à ton objectif, ton niveau et ton budget. Réponse immédiate, sans engagement.",
+    "progress": "Question {current} sur {total}",
+    "back": "Précédent",
+    "next": "Suivant",
+    "skip": "Passer",
+    "errorChoose": "Choisis une option pour continuer.",
+    "budgetHint": "Facultatif — cela aide à affiner la recommandation.",
+    "questions": {
+      "objectif": "Quel est ton objectif principal ?",
+      "niveau": "Quel est ton niveau actuel ?",
+      "dispo": "Combien de séances par semaine peux-tu faire ?",
+      "materiel": "Où veux-tu t'entraîner ?",
+      "preference": "Comment préfères-tu être accompagné ?",
+      "budget": "Quel budget mensuel envisages-tu ?"
+    },
+    "options": {
+      "objectif": {
+        "forme": "Retrouver la forme",
+        "performance": "Performance sportive",
+        "force": "Force et puissance",
+        "endurance": "Endurance"
+      },
+      "niveau": {
+        "debutant": "Débutant",
+        "intermediaire": "Intermédiaire",
+        "avance": "Avancé"
+      },
+      "dispo": {
+        "1_2": "1 à 2 séances par semaine",
+        "3_4": "3 à 4 séances par semaine",
+        "5_plus": "5 séances ou plus"
+      },
+      "materiel": {
+        "salle": "En salle",
+        "domicile_avec": "À domicile, avec du matériel",
+        "domicile_sans": "À domicile, sans matériel"
+      },
+      "preference": {
+        "en_ligne": "En ligne",
+        "presentiel": "En présentiel",
+        "indifferent": "Peu importe"
+      },
+      "budget": {
+        "moins_2000": "Moins de 2 000 DA",
+        "2000_5999": "2 000 à 5 999 DA",
+        "6000_9999": "6 000 à 9 999 DA",
+        "10000_plus": "10 000 DA et plus",
+        "discuter": "Je préfère en discuter"
+      }
+    },
+    "contactStep": {
+      "kicker": "Dernière étape",
+      "heading": "Tes coordonnées",
+      "intro": "Ton numéro sert à te recontacter sur WhatsApp. Pas de spam, pas de revente.",
+      "nameLabel": "Prénom",
+      "nameError": "Indique au moins 2 caractères.",
+      "phoneLabel": "Téléphone (WhatsApp)",
+      "phoneError": "Numéro invalide : mobile algérien, par ex. +213 5.. .. .. ..",
+      "emailLabel": "E-mail (optionnel)",
+      "honeypotLabel": "Site web",
+      "consentRecontact": "J'accepte d'être recontacté par WhatsApp ou e-mail au sujet de ma demande.",
+      "consentMarketing": "J'accepte de recevoir des actualités et offres (facultatif).",
+      "consentAge18": "Je confirme avoir 18 ans ou plus.",
+      "consentError": "Les consentements « recontact » et « 18 ans ou plus » sont requis.",
+      "captchaLabel": "Protection anti-robot",
+      "captchaError": "La protection anti-robot n'a pas pu se charger. Réessaie dans un instant.",
+      "submit": "Voir ma recommandation",
+      "sending": "Envoi…"
+    },
+    "errors": {
+      "captcha": "La vérification anti-robot a échoué. Réessaie dans un instant.",
+      "rateLimited": "Trop de tentatives. Attends quelques minutes avant de réessayer.",
+      "invalid": "Le formulaire est incomplet ou invalide. Vérifie et réessaie.",
+      "network": "Connexion impossible. Vérifie ta connexion et réessaie."
+    }
   },
   "legal": {
     "privacy": {

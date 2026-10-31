@@ -33,6 +33,9 @@ export async function SiteHeader() {
           <Link href="/coaching" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
             {t("coaching")}
           </Link>
+          <Link href="/quiz" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
+            {t("quiz")}
+          </Link>
           <details className="relative">
             <summary className="cursor-pointer list-none text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
               {t("disciplines")}
@@ -76,9 +79,10 @@ export async function SiteHeader() {
             className="absolute inset-x-0 top-full z-40 border-b border-line bg-canvas px-4 py-4"
           >
             <ul className="flex flex-col gap-1">
-              {[
+              {              [
                 { href: "/", key: "home" },
                 { href: "/coaching", key: "coaching" },
+                { href: "/quiz", key: "quiz" },
                 { href: "/about", key: "about" },
                 { href: "/faq", key: "faq" },
                 { href: "/contact", key: "contact" },
