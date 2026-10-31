@@ -300,6 +300,20 @@
       "network": "Connexion impossible. Vérifie ta connexion et réessaie."
     }
   },
+  "results": {
+    "metaTitle": "Ta recommandation — TeekayFit",
+    "kicker": "D'après tes réponses",
+    "intro": "Ce programme correspond à ton objectif, ton niveau et ton budget. Écris-nous pour démarrer.",
+    "currency": "DA",
+    "durationLine": "Durée : {duration}",
+    "ctaCoaching": "Voir le détail de l'offre",
+    "expiredHeading": "Ce résultat n'est plus disponible",
+    "expiredBody": "Le lien a expiré (il valait 72 heures) ou n'existe pas. Refais le quiz pour obtenir une nouvelle recommandation.",
+    "limitedBody": "Trop de consultations en peu de temps. Réessaie dans quelques minutes.",
+    "emptyHeading": "Aucune offre active",
+    "emptyBody": "Le quiz n'a trouvé aucune offre disponible pour l'instant. Écris-nous sur WhatsApp pour en discuter.",
+    "retryLink": "Refaire le quiz"
+  },
   "legal": {
     "privacy": {
       "metaTitle": "Confidentialité — TeekayFit",

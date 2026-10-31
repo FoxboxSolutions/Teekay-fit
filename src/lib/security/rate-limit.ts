@@ -62,10 +62,14 @@ function rateLimitSalt(): string {
 
 /**
  * Clé de rate limit par IP : HMAC-SHA256 (sel d'env, IP) — l'IP en clair
- * n'atteint jamais la table `rate_limit_counters`.
+ * n'atteint jamais la table `rate_limit_counters`. Accepte n'importe quel
+ * objet « en-têtes » (`Headers` des routes, `await headers()` des pages).
  */
-export function ipRateLimitKey(headers: Headers, prefix: string): string {
-  const ip = clientIp(headers);
+export function ipRateLimitKey(
+  headers: { get(name: string): string | null },
+  prefix: string,
+): string {
+  const ip = clientIp(headers as Headers);
   const digest = createHmac("sha256", rateLimitSalt()).update(ip).digest("hex");
   return `${prefix}:${digest}`;
 }
