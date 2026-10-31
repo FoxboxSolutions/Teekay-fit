@@ -82,7 +82,7 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 - [ ] CSRF : vérification d'origine active seulement si `NEXT_PUBLIC_APP_URL` est défini en environnement — **M11** (checklist prod)
 - [ ] Enrôlement MFA admin : routes prêtes (`/api/admin/mfa/*`) mais sans interface ni obligation — à imposer au dashboard — **M9**
 - [x] Connexion téléphone — **décision tranchée** : lien magique e-mail = mode principal, téléphone **désactivé au lancement** (`AUTH_PHONE_ENABLED=false`) ; e-mail **obligatoire** à la commande — reporté en M4 (formulaire) et M6 (création du compte) ; **le PRD réexporté (palette « luxury red & black » sans or, e-mail obligatoire, téléphone désactivé) sera commité dans le dépôt** par le propriétaire
-- [ ] Aucun test E2E navigateur (Playwright) ni anti-bot captcha sur les formulaires publics — captcha Turnstile **M5** ; premier test Playwright du parcours de commande **M6**, suite complète **M11**
+- [ ] Aucun test E2E navigateur (Playwright) ni anti-bot captcha sur les formulaires publics — **traité en M5** : Turnstile + honeypot + rate limit livrés, **1er Playwright E2E** (quiz → résultat → lead) livré ; reste le parcours de commande (**M6**) puis la suite complète (**M11**)
 - [x] `npx supabase status -o env` utilisé par les tests arrête imgproxy/pooler du stack local — **traité côté CI** (le job expose les clés par variables d'environnement) ; sans impact fonctionnel
 
 **Livrables :** dépôt initial, schéma migré, authentification fonctionnelle, environnements séparés, socle i18n/CSS logiques.
@@ -221,19 +221,19 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Objectif :** Livrer le quiz « Trouve ton programme », la création de leads avec consentement et le pipeline CRM de base (données et règles).
 
 **Checklist :**
-- [ ] Routes `/quiz` et `/results` (page résultat uniquement avec preuves réelles et autorisées)
-- [ ] 5 à 6 questions : objectif, niveau, disponibilité, matériel ou salle, préférence (en ligne ou présentiel), budget indicatif
-- [ ] Résultat recommandant une offre avec une explication courte
-- [ ] Lead créé avec consentement explicite, source « quiz »
-- [ ] Bouton ouvrant WhatsApp avec message pré-rempli (offre recommandée, objectif)
-- [ ] Formulaire de contact disponible en canal secondaire, avec consentement et source
-- [ ] Modèle `leads` (§11) : champs, pipeline `new`, `contacted`, `interested`, `follow_up`, `converted`, `lost`, notes à accès restreint, dates
-- [ ] Recherche par nom et téléphone ; filtres par statut, offre, source, relance
-- [ ] Numéros normalisés pour la détection de doublons ; fusion par revue humaine uniquement
-- [ ] Limitation de débit sur quiz et leads ; aucune donnée stockée sans consentement
-- [ ] Anti-bot : Cloudflare Turnstile (ou équivalent) sur le formulaire de contact et le quiz, en plus de la limitation de débit (décision tranchée, reportée depuis M2)
-- [ ] Aucun message marketing sans consentement et base légale
-- [ ] Événements `quiz_start`, `quiz_complete`, `submit_lead`, `whatsapp_click` (détail en M10)
+- [x] Routes `/quiz` et `/results` (page résultat : carte offre issue des preuves réelles seedées §5 ; jeton inconnu ou expiré ⇒ page neutre identique, `noindex`)
+- [x] 6 questions : objectif, niveau, disponibilité, matériel ou salle, préférence (en ligne ou présentiel), budget indicatif (facultatif, bouton « Passer »)
+- [x] Résultat recommandant une offre avec une explication courte (règles déterministes préférence+objectif+budget, repli Starter ; recalcul côté serveur à la soumission)
+- [x] Lead créé avec consentement explicite (recontact + 18 ans requis ; marketing optionnel non pré-coché ; versions + horodatage en `consents`), source « quiz » ; fonction atomique `submit_lead` (SECURITY DEFINER, service role seul)
+- [x] Bouton ouvrant WhatsApp avec message pré-rempli (offre recommandée, objectif) sur la page résultat
+- [x] Formulaire de contact disponible en canal secondaire, avec consentement et source « contact » (message ajouté aux `notes`, jamais écrasé)
+- [x] Modèle `leads` (§11) : champs, pipeline `new` → `contacted` → `interested` → `follow_up` → `converted` → `lost`, notes à accès restreint (RLS admin seul), dates ; doublons : `phone_norm` unique + `needs_review`, ancien nom jamais écrasé
+- [x] Recherche par nom et téléphone ; filtres par statut, offre, source, relance — **modèle prêt** (index `phone_norm`, `status`, `source`, `needs_review`) ; l'interface de recherche/filtres est livrée avec le dashboard (**M9**)
+- [x] Numéros normalisés pour la détection de doublons (E.164 DZ) ; fusion par revue humaine uniquement (jamais automatique) — détection + `needs_review` livrées ; l'interface de fusion est en **M9**
+- [x] Limitation de débit sur quiz et leads (buckets IP HMAC-salés : 5/10 min quiz, 3/10 min contact, 30/10 min lecture résultat) ; aucune donnée stockée sans consentement (RPC refuse sans consentement obligatoire)
+- [x] Anti-bot : Cloudflare Turnstile sur le formulaire de contact et le quiz, en plus de la limitation de débit — vérification serveur échec fermé, honeypot à réponse factice identique (aucune écriture), clés de test refusées hors localhost
+- [x] Aucun message marketing sans consentement et base légale (marketing = version + horodatage tracés en `consents`, jamais pré-coché)
+- [x] Événements `quiz_start`, `quiz_complete`, `submit_lead`, `whatsapp_click` (sans PII ; `/api/telemetry` toujours `ok` silencieux ; détail M10)
 
 **Livrables :** quiz fonctionnel, table `leads` avec pipeline et consentements, capture de leads documentée.
 
@@ -242,6 +242,12 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Dépendances :** M2, M3, M4 (pages et CTA) ; décisions sur les offres optionnelles (non bloquantes).
 
 **Risques principaux :** leads perdus si enregistrement non serveur ; consentement absent → illégalité (loi 18-07) ; doublons de leads (atténuation : normalisation + revue humaine).
+
+**Livré (M5) :** migrations `20261030090000_m5_lead_quiz_schema.sql` (besoins revue, notes, phone_norm unique, consentements recontact/18+, jetons résultat), `20261030100000_m5_submit_lead.sql` + `20261030110000_m5_submit_lead_notes.sql` (RPC atomique 15 params, notes ajoutées jamais écrasées). Libs : `src/lib/phone.ts` (E.164 DZ), `src/lib/quiz/{schema,recommend,results}.ts` (zod, reco pure, jeton SHA-256 72 h), `src/lib/leads/{capture,guard}.ts` (CONSENT_VERSIONS, honeypot → rate limit → Turnstile), `src/lib/security/{turnstile,rate-limit}.ts` (siteverify échec fermé + hostname strict hors clés de test ; `ipRateLimitKey` HMAC sel d'env, toutes les routes migrées). Routes : `POST /api/quiz/submit`, `POST /api/contact`, `POST /api/telemetry` (toujours ok, sans PII). UI : `/fr/quiz` (wizard 6 questions, reprise sessionStorage sans PII, focus clavier, honeypot, 3 consentements), widget `turnstile.tsx` explicite, `/fr/results/[jeton]` (lecture serveur par hash, inconnu = expiré = page neutre identique, carte offre + WhatsApp serveur pré-rempli sans numéro, `noindex`), `contact-form.tsx` branché, `whatsapp-link.tsx` client tracé ; entrées nav bureau/mobile + CTA accueil. Commits : `63222b2` `dda7d30` `d438627` `83fa953` `307eb8f` `2b6b1d8` `4e1c466` `ff85d7d` `9b518bb` `9d3266e` `2fd78d6` `10fe715`.
+
+**Vérifications (M5) :** `npm test` = **229/229** (15 fichiers : 26 normalisation téléphone + 19 quiz schema/reco + 45 M5 DB/routes/RLS dont doublons séquentiels **et concurrents** (1 seul lead), atomicité (réponses invalides ⇒ 0 lead/0 consentement orphelin), honeypot ⇒ succès factice + zéro écriture, anti-énumération (réponse identique numéro existant ou non), refus captcha échec fermé (jeton absent, siteverify injoignable), consentement manquant ⇒ 400 sans écriture, rate limit 6e → 429, RLS anon sans aucune donnée leads/submissions/consents + `submit_lead` révoquée de anon). **1er E2E Playwright** (`npm run test:e2e`, clés de test Turnstile, `next dev`) : quiz complet → `/fr/results/<jeton>` → lead + soumission + reco `online` vérifiés en base ; jeton inconnu ⇒ page neutre. `npm run typecheck` et `npm run lint` verts. Vérifié manuellement en psql : rollback transactionnel, doublon `needs_review` avec nom d'origine conservé, notes contact concaténées, jetons uniquement hachés, `rate_limit_counters` ne contient que des HMAC (jamais d'IP en clair).
+
+**Ouverts (M5) :** (1) **Textes de consentement = placeholders juriste** (recontact, marketing, 18+, mentions des pages légales) — bloquant pour la production (loi 18-07) ; versions figées dans `CONSENT_VERSIONS` à incrémenter si les textes changent. (2) Remplacer les **clés de test Turnstile** par les clés réelles du domaine en production (le hostname strict est déjà actif hors clés de test). (3) Purge/conservation des leads non convertis : fonctions prêtes, planification **M12** (pg_cron). (4) Interface de recherche, filtres et fusion manuelle des doublons : **M9** (dashboard). (5) Rappel **M11** : suite E2E complète (parcours de commande dès **M6**) + re-mesure Lighthouse sur contenu réel et vrai 4G (décision ÉTAPE 1). (6) Événements : détail/conservation en **M10**.
 
 ---
 
