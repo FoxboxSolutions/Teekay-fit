@@ -68,7 +68,7 @@ export default async function HomePage({
             </div>
           </div>
           <div className="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-card border border-line bg-surface">
-            <Image src="/logo-monogram-512.png" alt="" fill sizes="(max-width: 640px) 384px, 384px" className="object-contain p-10 opacity-90" />
+            <Image src="/logo-monogram-512.png" alt="" fill priority sizes="(max-width: 640px) 384px, 384px" className="object-contain p-10 opacity-90" />
             <div className="absolute inset-x-4 bottom-4">
               <ContentText text={t("hero.mediaAlt")} className="text-xs" />
             </div>
@@ -83,7 +83,7 @@ export default async function HomePage({
           <p className="mt-4 max-w-2xl text-ink-muted">
             <ContentText text={t("coach.body")} />
           </p>
-          <Link href="/about" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-red-bright underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
+          <Link href="/about" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-ink underline decoration-red-bright decoration-2 underline-offset-4 hover:decoration-red-lux focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
             {t("coach.link")}
           </Link>
         </div>
@@ -195,7 +195,7 @@ export default async function HomePage({
               { value: "q3", title: t("faqTeaser.i3"), content: <ContentText text={t("faqTeaser.a3")} className="text-ink-muted" /> },
             ]}
           />
-          <Link href="/faq" className="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-red-bright underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
+          <Link href="/faq" className="mt-6 inline-flex min-h-11 items-center text-sm font-semibold text-ink underline decoration-red-bright decoration-2 underline-offset-4 hover:decoration-red-lux focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
             {t("faqTeaser.link")}
           </Link>
         </div>

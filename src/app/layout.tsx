@@ -4,16 +4,31 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 
-const barlowCondensed = Barlow_Condensed({
+// Barlow Condensed 700 : titres (dont le h1 du hero) — préchargée (critique).
+const barlowCondensed700 = Barlow_Condensed({
   subsets: ["latin", "latin-ext"],
-  weight: ["600", "700"],
+  weight: "700",
   display: "swap",
+  adjustFontFallback: true,
+  preload: true,
   variable: "--font-barlow-condensed",
+});
+
+// Barlow Condensed 600 : graisses des composants UI (boutons, badges, onglets…),
+// hors chemin critique du hero → chargée à la demande, sans préchargement.
+const barlowCondensed600 = Barlow_Condensed({
+  subsets: ["latin", "latin-ext"],
+  weight: "600",
+  display: "swap",
+  adjustFontFallback: true,
+  preload: false,
+  variable: "--font-barlow-condensed-600",
 });
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   display: "swap",
+  adjustFontFallback: true,
   variable: "--font-inter",
 });
 
@@ -36,7 +51,7 @@ export default async function RootLayout({
       <html
         lang={locale}
         dir={locale === "ar" ? "rtl" : "ltr"}
-        className={`${barlowCondensed.variable} ${inter.variable}`}
+        className={`${barlowCondensed700.variable} ${barlowCondensed600.variable} ${inter.variable}`}
       >
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
