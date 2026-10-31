@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { waLink, hasWhatsAppNumber } from "@/lib/whatsapp";
+import { WhatsAppLink } from "@/components/site/whatsapp-link";
 
 /**
  * Barre WhatsApp fixe en bas, visible uniquement sur mobile. Masquée si le
@@ -13,14 +14,7 @@ export async function MobileWhatsAppBar() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-canvas/95 backdrop-blur md:hidden">
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex min-h-12 w-full items-center justify-center bg-red-lux px-4 text-sm font-semibold text-ink transition-colors duration-fast hover:bg-wine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-bright"
-      >
-        {t("label")}
-      </a>
+      <WhatsAppLink href={href} label={t("label")} variant="bar" />
     </div>
   );
 }

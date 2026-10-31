@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { waLink, hasWhatsAppNumber } from "@/lib/whatsapp";
-import { cn } from "@/lib/ui/cn";
+import { WhatsAppLink } from "@/components/site/whatsapp-link";
 
 type Variant = "primary" | "outline";
 
@@ -15,7 +15,8 @@ type WhatsAppButtonProps = {
 /**
  * Bouton WhatsApp (canal principal). Masqué si le numéro est absent ou hors
  * format international — jamais de faux numéro. Ouvre wa.me : l'envoi reste
- * manuel côté utilisateur, aucune affirmation de livraison.
+ * manuel côté utilisateur, aucune affirmation de livraison. Le clic émet
+ * l'événement produit `whatsapp_click` (sans PII).
  */
 export async function WhatsAppButton({
   offerSlug,
@@ -37,19 +38,12 @@ export async function WhatsAppButton({
   if (!href) return null;
 
   return (
-    <a
+    <WhatsAppLink
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={cn(
-        "inline-flex min-h-11 items-center justify-center rounded-control px-5 py-3 text-sm font-semibold",
-        "transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright focus-visible:ring-offset-2 focus-visible:ring-offset-canvas",
-        variant === "primary" && "bg-red-lux text-ink hover:bg-wine",
-        variant === "outline" && "border border-line-input text-ink hover:bg-surface",
-        className,
-      )}
-    >
-      {label ?? t("label")}
-    </a>
+      label={label ?? t("label")}
+      variant={variant}
+      className={className}
+      offerSlug={offerSlug}
+    />
   );
 }

@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Turnstile } from "@/components/site/turnstile";
+import { trackEvent } from "@/lib/telemetry/client";
 import {
   BUDGETS,
   DISPOS,
@@ -70,6 +71,23 @@ export function QuizForm() {
 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const firstFocus = useRef(true);
+  const startedTracked = useRef(false);
+  const completedTracked = useRef(false);
+
+  // Événements produit sans PII (une seule fois par session de quiz).
+  function trackStart() {
+    if (!startedTracked.current) {
+      startedTracked.current = true;
+      trackEvent("quiz_start");
+    }
+  }
+
+  function trackComplete() {
+    if (!completedTracked.current) {
+      completedTracked.current = true;
+      trackEvent("quiz_complete");
+    }
+  }
 
   // Reprise après rechargement : réponses + étape (aucune donnée personnelle).
   // setState dans l'effet = seul moyen sûr de lire sessionStorage sans
@@ -117,6 +135,7 @@ export function QuizForm() {
   }, [step]);
 
   function choose(field: QuizField, value: string) {
+    trackStart();
     setStepError(false);
     setAnswers((prev) => ({ ...prev, [field]: value }) as Partial<QuizAnswers>);
   }
@@ -135,11 +154,13 @@ export function QuizForm() {
       return;
     }
     setStepError(false);
+    if (step === QUESTION_FIELDS.length - 1) trackComplete();
     setStep((s) => Math.min(CONTACT_STEP, s + 1));
   }
 
   function skipOptional() {
     setStepError(false);
+    trackComplete();
     setStep(CONTACT_STEP);
   }
 
