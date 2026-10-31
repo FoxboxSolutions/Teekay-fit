@@ -81,15 +81,14 @@ export function recommendOffer(
   const ceiling = ceilingOf(answers.budget);
   const target = preferredOfferType(answers);
 
-  let preferred = active.find((o) => o.offer_type === target) ?? null;
-  if (!preferred) {
-    // Type préféré indisponible parmi les offres actives → repli : coaching
-    // en ligne (le coaching polyvalent), sinon la 1re offre par prix.
-    preferred =
-      active.find((o) => o.offer_type === "coaching_online") ??
-      asc.find((o) => o.price_da <= ceiling) ??
-      asc[0];
-  }
+  // Type préféré → sinon coaching en ligne → sinon 1re offre abordable →
+  // sinon la moins chère. (?? écourte dès qu'une offre est trouvée.)
+  const preferred =
+    active.find((o) => o.offer_type === target) ??
+    active.find((o) => o.offer_type === "coaching_online") ??
+    asc.find((o) => o.price_da <= ceiling) ??
+    asc[0];
+  if (!preferred) return null; // défense : active non vide ⇒ au moins une offre
 
   if (preferred.price_da <= ceiling) {
     return { slug: preferred.slug, reason: "preference", steppedDown: false };
@@ -99,11 +98,13 @@ export function recommendOffer(
   const lower = asc.filter(
     (o) => o.price_da < preferred.price_da && o.price_da <= ceiling,
   );
-  if (lower.length > 0) {
-    const pick = lower[lower.length - 1]; // le plus élevé encore abordable
+  const pick = lower[lower.length - 1]; // le plus élevé encore abordable
+  if (pick) {
     return { slug: pick.slug, reason: "budget_ceiling", steppedDown: true };
   }
 
   // Même la moins chère dépasse le plafond → offre d'entrée, prix affiché.
-  return { slug: asc[0].slug, reason: "budget_floor", steppedDown: true };
+  const cheapest = asc[0];
+  if (!cheapest) return null; // défense : active non vide ⇒ asc non vide
+  return { slug: cheapest.slug, reason: "budget_floor", steppedDown: true };
 }
