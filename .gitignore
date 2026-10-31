@@ -22,6 +22,8 @@ supabase/.branches/
 # Tests
 coverage/
 *.tsbuildinfo
+test-results/
+playwright-report/
 
 # Divers
 *.log

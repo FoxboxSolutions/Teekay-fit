@@ -8,6 +8,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // Les modules « server-only » (routes, lib serveur) sont testables :
+      // le guard npm ne s'applique qu'aux Client Components React.
+      "server-only": path.resolve(import.meta.dirname, "tests/helpers/server-only-stub.ts"),
       "@": path.resolve(import.meta.dirname, "src"),
     },
   },
