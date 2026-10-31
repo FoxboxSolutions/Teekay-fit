@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { checkRateLimit, clientIp } from "@/lib/security/rate-limit";
+import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 
 const phoneSchema = z.object({
   // Format international : +213... 
@@ -17,8 +17,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "phone_auth_disabled" }, { status: 404 });
   }
 
-  const ip = clientIp(request.headers);
-
   const body = await request.json().catch(() => null);
   const parsed = phoneSchema.safeParse(body);
   if (!parsed.success) {
@@ -27,7 +25,7 @@ export async function POST(request: Request) {
   const { phone } = parsed.data;
 
   const [byIp, byPhone] = await Promise.all([
-    checkRateLimit(`auth_phone_ip:${ip}`, 10, 900),
+    checkRateLimit(ipRateLimitKey(request.headers, "auth_phone_ip"), 10, 900),
     checkRateLimit(`auth_phone_num:${phone}`, 5, 900),
   ]);
   if (!byIp || !byPhone) {

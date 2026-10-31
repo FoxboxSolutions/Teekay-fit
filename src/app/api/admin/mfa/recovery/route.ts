@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/session";
 import { consumeRecoveryCode } from "@/lib/auth/mfa-recovery";
-import { checkRateLimit, clientIp } from "@/lib/security/rate-limit";
+import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const recoverySchema = z.object({
@@ -21,14 +21,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: guard.error }, { status: guard.status });
   }
 
-  const ip = clientIp(request.headers);
   const body = await request.json().catch(() => null);
   const parsed = recoverySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_code" }, { status: 400 });
   }
 
-  const limited = await checkRateLimit(`mfa_recovery_ip:${ip}`, 5, 900);
+  const limited = await checkRateLimit(ipRateLimitKey(request.headers, "mfa_recovery_ip"), 5, 900);
   if (!limited) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }

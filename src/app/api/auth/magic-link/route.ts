@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { checkRateLimit, clientIp } from "@/lib/security/rate-limit";
+import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 
 const emailSchema = z.object({
   email: z.email().max(254),
@@ -12,8 +12,6 @@ const emailSchema = z.object({
  * Validation zod + limitation de débit (10/15 min par IP + par e-mail).
  */
 export async function POST(request: Request) {
-  const ip = clientIp(request.headers);
-
   const body = await request.json().catch(() => null);
   const parsed = emailSchema.safeParse(body);
   if (!parsed.success) {
@@ -22,7 +20,7 @@ export async function POST(request: Request) {
   const { email } = parsed.data;
 
   const [byIp, byEmail] = await Promise.all([
-    checkRateLimit(`auth_magic_ip:${ip}`, 10, 900),
+    checkRateLimit(ipRateLimitKey(request.headers, "auth_magic_ip"), 10, 900),
     checkRateLimit(`auth_magic_email:${email.toLowerCase()}`, 5, 900),
   ]);
   if (!byIp || !byEmail) {

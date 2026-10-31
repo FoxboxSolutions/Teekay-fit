@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth/session";
-import { checkRateLimit, clientIp } from "@/lib/security/rate-limit";
+import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 
 const verifySchema = z.object({
   factorId: z.string().min(1).max(128),
@@ -16,14 +16,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: guard.error }, { status: guard.status });
   }
 
-  const ip = clientIp(request.headers);
   const body = await request.json().catch(() => null);
   const parsed = verifySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_code" }, { status: 400 });
   }
 
-  const limited = await checkRateLimit(`mfa_verify_ip:${ip}`, 10, 300);
+  const limited = await checkRateLimit(ipRateLimitKey(request.headers, "mfa_verify_ip"), 10, 300);
   if (!limited) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
