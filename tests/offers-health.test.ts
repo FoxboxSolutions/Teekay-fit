@@ -47,7 +47,7 @@ function lastLog(): Record<string, unknown> {
 
 beforeAll(async () => {
   // Env AVANT l'import des modules (publicClient la lit à l'appel).
-  process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://localhost:54321";
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://localhost:54470";
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
   process.env.APP_ENV = "production";
   ({ getOffers } = await import("@/lib/offers/queries"));

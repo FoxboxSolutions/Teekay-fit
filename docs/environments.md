@@ -11,7 +11,7 @@ Un projet Supabase par environnement. Aucune donnée, aucun secret n'est partag�
 ## Règles
 
 1. **Migrations versionnées** : tout changement de schéma passe par un fichier SQL daté dans `supabase/migrations/`. Aucun altéraction manuelle du schéma depuis le dashboard en production.
-2. **Développement local** : `npx supabase start` (exige Docker Desktop) — base sur le port 54322, API sur 54321. `npx supabase db reset` rejoue toutes les migrations.
+2. **Développement local** : `npx supabase start` (exige Docker Desktop) — base sur le port 25432, API sur 54470. `npx supabase db reset` rejoue toutes les migrations. *Ports locaux déplacés hors plage 54170-54469, réservée par Hyper-V/WINNAT sur Windows (bind refusé sans droits admin) : DB 25432, shadow 25430, API 54470, pooler 54471, Studio 54472, SMTP 54473, analytics 54474.*
 3. **Passage en préproduction/production** : `npx supabase link --project-ref <ref>` puis `npx supabase db push`. Le link n'est jamais commité (`.temp/` ignoré).
 4. **Variables d'environnement** : voir `.env.example` (aucune valeur). Chaque environnement a ses propres valeurs, injectées par le gestionnaire de secrets de l'hébergeur. Jamais de secret dans `NEXT_PUBLIC_*`.
 5. **Clés** : `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publiables) côté client ; `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement (module `src/lib/supabase/admin.ts`, testé automatiquement).
