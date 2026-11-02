@@ -16,3 +16,21 @@ Un projet Supabase par environnement. Aucune donnée, aucun secret n'est partag�
 4. **Variables d'environnement** : voir `.env.example` (aucune valeur). Chaque environnement a ses propres valeurs, injectées par le gestionnaire de secrets de l'hébergeur. Jamais de secret dans `NEXT_PUBLIC_*`.
 5. **Clés** : `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publiables) côté client ; `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement (module `src/lib/supabase/admin.ts`, testé automatiquement).
 6. **RLS** : activée sur toutes les tables dès leur création, en refus par défaut ; `auto_expose_new_tables = false` — toute exposition API passe par un GRANT explicite dans une migration.
+
+## APP_ENV
+
+Variable serveur `APP_ENV` : `development` | `preview` | `production`, lue uniquement via le module zod unique `src/lib/env.ts` (jamais `process.env` ailleurs, jamais `NEXT_PUBLIC_PLACEHOLDER_FRAMES` comme marqueur).
+
+Défaut sûr si absente ou invalide (valeurs typées `absent` / `invalid` visibles sur `/api/health`, champ `appEnv`) :
+
+| Usage | Comportement par défaut |
+| --- | --- |
+| Argent / sécurité (provider fake, simulateur) | **production** : fake refusé, `/fr/payment/simulate/[id]` → 404 |
+| Indexation | **non-production** : `X-Robots-Tag: noindex, nofollow`, meta robots, `robots.txt` `Disallow: /` |
+
+Règles :
+
+- `PAYMENT_PROVIDER=fake` n'est accepté qu'avec `APP_ENV` explicite `development` ou `preview` (démarrage en production avec fake ⇒ échec).
+- Seule une `production` explicite est indexable : `robots.txt` ouvre `Allow: /` + sitemap ; tout autre valeur (y compris absente/invalide) publie `Disallow: /` et noindex.
+- **Build** : `npm run build:prod` et le job CI `content-strict` exigent `APP_ENV=production` dans le shell du build. Attention : Next.js n'injecte pas `.env.local` dans le processus qui lance le build — définir la variable dans le terminal ou le gestionnaire de secrets de l'hébergeur, pas seulement dans `.env.local`.
+- **Dev local** : le serveur Next lit `.env.local` au démarrage. Une variable absente vaut `absent` ⇒ argent/sécurité en mode production ; pour le provider fake en local, mettre `APP_ENV=development` dans `.env.local`.
