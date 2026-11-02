@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Barlow_Condensed, Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { nonIndexableMeta } from "@/lib/env";
 import "./globals.css";
 
 // Barlow Condensed 700 : titres (dont le h1 du hero) — préchargée (critique).
@@ -36,6 +37,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "TeekayFit",
     description: "Hybrid Athlete & Performance Coach",
+    // Défaut sûr : <meta name="robots" content="noindex, nofollow"> hors
+    // production explicite ; hérité par toutes les pages enfants (audit M4).
+    ...nonIndexableMeta(),
   };
 }
 
