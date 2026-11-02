@@ -45,13 +45,16 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
 
-      - name: Contrôle strict des placeholders / routes / WhatsApp
+      - name: Contrôle strict des placeholders / routes / WhatsApp / APP_ENV
         run: node scripts/check-placeholders.mjs --strict
         env:
           # Le vrai numéro WhatsApp vit dans l'env de déploiement ; on fournit
           # ici un numéro valide (format) pour que la CI teste la logique du
           # contrôle sans exposer le secret de production.
           NEXT_PUBLIC_WHATSAPP_NUMBER: "+213555000000"
+          # Le contrôle strict exige APP_ENV=production explicite (décision
+          # APP_ENV, audit M4) — le script ne lit pas .env.local.
+          APP_ENV: production
 
   rls:
     name: RLS (Supabase local)

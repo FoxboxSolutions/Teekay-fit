@@ -49,6 +49,7 @@ beforeAll(async () => {
   // Env AVANT l'import des modules (publicClient la lit à l'appel).
   process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://localhost:54321";
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+  process.env.APP_ENV = "production";
   ({ getOffers } = await import("@/lib/offers/queries"));
   ({ GET: healthGET } = await import("@/app/api/health/route"));
 });
@@ -98,7 +99,7 @@ describe("GET /api/health — décompte offres + statut", () => {
     const res = await healthGET();
 
     expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ status: "degraded", activeOffers: 0 });
+    expect(await res.json()).toEqual({ status: "degraded", activeOffers: 0, appEnv: "production" });
   });
 
   it("offres actives présentes ⇒ ok (200)", async () => {
@@ -107,7 +108,7 @@ describe("GET /api/health — décompte offres + statut", () => {
     const res = await healthGET();
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: "ok", activeOffers: 3 });
+    expect(await res.json()).toEqual({ status: "ok", activeOffers: 3, appEnv: "production" });
   });
 
   it("décompte inexploitable ⇒ degraded (503) + erreur explicite + log structuré", async () => {
@@ -119,6 +120,7 @@ describe("GET /api/health — décompte offres + statut", () => {
     expect(await res.json()).toEqual({
       status: "degraded",
       activeOffers: null,
+      appEnv: "production",
       activeOffersError: "indisponible",
     });
     // Le décompte échoué est aussi journalisé (offers.count_failed).

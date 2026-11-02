@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getActiveOffersCount } from "@/lib/offers/queries";
+import { appEnvStatus } from "@/lib/env";
 
 export async function GET() {
   const activeOffers = await getActiveOffersCount();
@@ -12,6 +13,9 @@ export async function GET() {
     {
       status,
       activeOffers,
+      // APP_ENV visible (décision : un oubli est lisible et sans danger) —
+      // "development" | "preview" | "production" | "absent" | "invalid".
+      appEnv: appEnvStatus(),
       ...(activeOffers === null ? { activeOffersError: "indisponible" } : {}),
     },
     { status: degraded ? 503 : 200 },

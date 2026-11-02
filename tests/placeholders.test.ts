@@ -108,4 +108,42 @@ describe("check-placeholders", () => {
     });
     expect(res.ok).toBe(true);
   });
+
+  it("strict : exige APP_ENV=production explicite (absente, invalide ou autre valeur)", () => {
+    writeMessages({ home: { title: "TeekayFit" } });
+    writeManifest({ comingSoonRoutes: [], legalRoutes: [] });
+
+    for (const appEnv of [undefined, "", "development", "preview", "staging"]) {
+      const res = runCheck({
+        env: { NEXT_PUBLIC_WHATSAPP_NUMBER: VALID_WA, APP_ENV: appEnv },
+        messagesDir,
+        manifestPath,
+        strict: true,
+      });
+      expect(res.ok, `APP_ENV=${appEnv ?? "absente"} acceptée en strict`).toBe(false);
+      expect(res.violations.some((v) => v.category === "appEnv")).toBe(true);
+    }
+
+    const ok = runCheck({
+      env: { NEXT_PUBLIC_WHATSAPP_NUMBER: VALID_WA, APP_ENV: "production" },
+      messagesDir,
+      manifestPath,
+      strict: true,
+    });
+    expect(ok.ok).toBe(true);
+    expect(ok.count).toBe(0);
+  });
+
+  it("non strict : APP_ENV absente n'est pas une violation", () => {
+    writeMessages({ home: { title: "TeekayFit" } });
+    writeManifest({ comingSoonRoutes: [], legalRoutes: [] });
+
+    const res = runCheck({
+      env: { NEXT_PUBLIC_WHATSAPP_NUMBER: VALID_WA },
+      messagesDir,
+      manifestPath,
+    });
+    expect(res.ok).toBe(true);
+    expect(res.violations.some((v) => v.category === "appEnv")).toBe(false);
+  });
 });
