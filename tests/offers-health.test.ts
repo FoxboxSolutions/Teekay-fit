@@ -93,7 +93,7 @@ describe("getOffers — journal structuré (logger logEvent)", () => {
 
 describe("GET /api/health — décompte offres + statut", () => {
   it("zéro offre active ⇒ degraded (503)", async () => {
-    mocks.state.result = { count: 0, error: null };
+    mocks.state.result = { data: null, count: 0, error: null };
 
     const res = await healthGET();
 
@@ -102,7 +102,7 @@ describe("GET /api/health — décompte offres + statut", () => {
   });
 
   it("offres actives présentes ⇒ ok (200)", async () => {
-    mocks.state.result = { count: 3, error: null };
+    mocks.state.result = { data: null, count: 3, error: null };
 
     const res = await healthGET();
 
@@ -111,7 +111,7 @@ describe("GET /api/health — décompte offres + statut", () => {
   });
 
   it("décompte inexploitable ⇒ degraded (503) + erreur explicite + log structuré", async () => {
-    mocks.state.result = { count: null, error: { message: "down" } };
+    mocks.state.result = { data: null, count: null, error: { message: "down" } };
 
     const res = await healthGET();
 
