@@ -214,6 +214,13 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 
 **Ouverts (M4) :** (1) `build:prod` et le job CI `content-strict` sont **rouges par conception** tant que 34 placeholders restent — c'est le signal de contenu manquant. (2) Toute la page du coach, les 3 biographies, les inclusions (surtout nutrition), les 5 descriptions de discipline et tous les corps légaux sont à fournir (listés plus bas). (3) `/login` et `/register` arrivent en M6 (lien magique e-mail). (4) Le « e-mail obligatoire à la commande » (champ commande + login) s'applique en M6. (5) Si un LCP < 2,5 s est exigé un jour : précharger/optimiser les polices ou `font-display: optional` (arbitrage marque) + visuel hero compressé.
 
+**Audit M4 (a–d) — livré :**
+- **(a) strict placeholders/WhatsApp** : déjà livré — `scripts/check-placeholders.mjs --strict`, `build:prod` (package.json), job CI `content-strict`, `tests/placeholders.test.ts`.
+- **(b) observabilité offres** : partiel → corrigé — `getOffers` journalise (`offers.fetch_failed`/`fetch_exception`), `/api/health` passe en 503 degraded si zéro offre ou décompte inexploitable — `tests/offers-health.test.ts` (5 tests, client Supabase simulé), commit `555717d`.
+- **(c) tests PAR-Q** : déjà livré — `tests/aptitude-form.test.tsx` (aucune écriture storage, pas d'appel réseau, aucune URL de paiement côté client).
+- **(d) APP_ENV** : livré — module zod unique `src/lib/env.ts` (défaut sûr : argent/sécurité → production, indexation → noindex), tests `tests/env.test.ts` (5 cas × garde fake/simulateur/meta), `src/proxy.ts` (`X-Robots-Tag: noindex, nofollow` hors production), `src/app/robots.ts` (Disallow / ; production = Allow + sitemap), `src/app/sitemap.ts`, meta robots héritée (`layout.tsx`), `build:prod` + CI strict exigent `APP_ENV=production` explicite, `/api/health` expose `appEnv` — docs `.env.example` + `docs/environments.md#app_env`, commits `3a90bde`, `46cd791`, `93d1d47`.
+- **Écart repéré en cours d'audit :** le PAR-Q M4 expose q1–q6 alors que `aptitude_questionnaires` porte q1–q7 (`other_restriction`) — alignement à faire en **M6**.
+
 ---
 
 ### M5 — Quiz & capture de leads
