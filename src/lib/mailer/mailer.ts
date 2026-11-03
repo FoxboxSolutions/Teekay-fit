@@ -14,6 +14,14 @@ export interface Mail {
   subjectKey: string;
   /** Paramètres de traduction (jamais de texte déjà traduit en dur ici). */
   params: Record<string, string | number>;
+  /**
+   * Sujet résolu, prêt à transmettre (appli monolingue fr : l'appelant porte
+   * le texte). Requis par les providers RÉELS (Resend) ; la clé i18n reste
+   * la source documentaire du libellé.
+   */
+  subject?: string;
+  /** Corps texte brut résolu — requis par les providers réels. */
+  text?: string;
 }
 
 export interface Mailer {

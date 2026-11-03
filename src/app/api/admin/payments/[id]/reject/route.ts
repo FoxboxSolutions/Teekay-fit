@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminAal2 } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { notifyPaymentRejected } from "@/lib/payments/notify";
 
 /**
  * M7a — REJET d'un paiement vérifié (route admin).
@@ -110,6 +111,10 @@ export async function POST(
       }),
     );
   }
+
+  // Message neutre au client : marche à suivre, aucun détail technique,
+  // UNE SEULE FOIS (outbox unique), jamais sur un rejeu « unchanged ».
+  await notifyPaymentRejected({ paymentId: payment.id, orderId: payment.order_id });
 
   return NextResponse.json({ ok: true, unchanged: false });
 }

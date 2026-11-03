@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminAal2 } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { notifyPaymentConfirmed } from "@/lib/payments/notify";
 
 /**
  * M7a — CONFIRMATION d'un paiement vérifié (route admin).
@@ -127,6 +128,11 @@ export async function POST(
       }),
     );
   }
+
+  // Notification client : UNE SEULE FOIS (outbox unique payment+event),
+  // seulement quand la transition est réellement appliquée, jamais sur un
+  // rejeu (« unchanged » ⇒ renvoyé avant ce point, sans envoi ni audit).
+  await notifyPaymentConfirmed({ paymentId: payment.id, orderId: payment.order_id });
 
   return NextResponse.json({ ok: true, unchanged: false });
 }

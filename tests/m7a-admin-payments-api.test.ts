@@ -27,6 +27,8 @@ const fake = vi.hoisted(() => ({
   transitionCalls: [] as { name: string; args: Record<string, unknown> }[],
   auditInserts: [] as Record<string, unknown>[],
   paymentReadQueue: [] as unknown[][],
+  notifyConfirmedCalls: [] as { paymentId: string; orderId: string }[],
+  notifyRejectedCalls: [] as { paymentId: string; orderId: string }[],
 }));
 
 vi.mock("@/lib/auth/session", () => ({
@@ -101,6 +103,17 @@ vi.mock("@/lib/payments/proof", () => ({
   createAdminProofSignedUrl: async (path: string) => `/signed/${path}`,
 }));
 
+vi.mock("@/lib/payments/notify", () => ({
+  notifyPaymentConfirmed: async (input: { paymentId: string; orderId: string }) => {
+    fake.notifyConfirmedCalls.push(input);
+    return { status: "sent" as const };
+  },
+  notifyPaymentRejected: async (input: { paymentId: string; orderId: string }) => {
+    fake.notifyRejectedCalls.push(input);
+    return { status: "sent" as const };
+  },
+}));
+
 type RouteModule = typeof import("@/app/api/admin/payments/route");
 type ConfirmModule = typeof import("@/app/api/admin/payments/[id]/confirm/route");
 type RejectModule = typeof import("@/app/api/admin/payments/[id]/reject/route");
@@ -144,6 +157,8 @@ beforeEach(() => {
   fake.ordersError = null;
   fake.proofQueue = [];
   fake.proofError = null;
+  fake.notifyConfirmedCalls = [];
+  fake.notifyRejectedCalls = [];
 });
 
 describe("liste — garde aal2 sur GET", () => {
@@ -199,8 +214,7 @@ describe("confirmation — montant reçu obligatoire", () => {
   it("montant différent (≠ attendu) ⇒ 400 montant_invalide, aucune transition ni audit", async () => {
     fake.paymentReadQueue = [[{ id: uuid, order_id: orderUuid, amount_da: 2000, status: "verifying" }]];
     const res = await confirming(1500);
-    expect(res.status).toBe(400);
-    const body = (await res.json()) as { error: string };
+    expect(res.status).toBe(400);    const body = (await res.json()) as { error: string };
     expect(body.error).toBe("montant_invalide");
     expect(fake.transitionCalls).toHaveLength(0);
     expect(fake.auditInserts).toHaveLength(0);
@@ -224,9 +238,15 @@ describe("confirmation — montant reçu obligatoire", () => {
       entity_id: uuid,
       metadata: { order_id: orderUuid, amount_da: 2000 },
     });
+    // Bloc 5 : e-mail client envoyé exactement une fois (idempotence outbox).
+    expect(fake.notifyConfirmedCalls).toHaveLength(1);
+    expect(fake.notifyConfirmedCalls[0]).toEqual({
+      paymentId: uuid,
+      orderId: orderUuid,
+    });
   });
 
-  it("rejeu de la confirmation ⇒ unchanged, AUCUN audit en double (droit ouvert une seule fois)", async () => {
+  it("rejeu de la confirmation ⇒ unchanged, AUCUN audit en double ni double envoi (droit ouvert une seule fois)", async () => {
     fake.transitionResult = { data: { result: "unchanged" }, error: null };
     fake.paymentReadQueue = [[{ id: uuid, order_id: orderUuid, amount_da: 2000, status: "verifying" }]];
     const res = await confirming(2000);
@@ -234,6 +254,7 @@ describe("confirmation — montant reçu obligatoire", () => {
     const body = (await res.json()) as { unchanged: boolean };
     expect(body.unchanged).toBe(true);
     expect(fake.auditInserts).toHaveLength(0);
+    expect(fake.notifyConfirmedCalls).toHaveLength(0);
   });
 
   it("montant manquant ⇒ 400", async () => {
@@ -279,6 +300,9 @@ describe("rejet — motif obligatoire", () => {
     expect(
       (fake.auditInserts[0]?.metadata as { reason: string }).reason,
     ).toBe("preuve non recevable — reprendre le virement");
+    // Bloc 5 : message neutre envoyé une seule fois au client.
+    expect(fake.notifyRejectedCalls).toHaveLength(1);
+    expect(fake.notifyRejectedCalls[0]).toEqual({ paymentId: uuid, orderId: orderUuid });
   });
 
   it("id inconnu ⇒ 404 y compris avec aal2", async () => {
