@@ -498,5 +498,23 @@
       "reference": "Référence",
       "notice": "Disponible uniquement en development et preview ; la page renvoie 404 dans tout autre cas."
     }
+  },
+  "order": {
+    "status": {
+      "metaTitle": "Suivi de commande",
+      "metaDescription": "Suivez l'état de votre commande Teekay Fit à partir de votre lien personnel.",
+      "title": "Suivi de commande",
+      "neutralTitle": "Commande non disponible",
+      "neutralText": "Ce lien de suivi est introuvable ou n'est plus valide. Vérifiez le lien reçu par e-mail ou contactez-nous pour le retrouver.",
+      "reference": "Référence",
+      "statusLabel": "Statut",
+      "amountLabel": "Montant",
+      "dateLabel": "Commande passée le",
+      "pending_payment": "Paiement en attente",
+      "paid": "Paiement confirmé",
+      "refunded": "Remboursée",
+      "cancelled": "Annulée",
+      "currency": "DA"
+    }
   }
 }
