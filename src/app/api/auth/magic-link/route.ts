@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
+import { checkRateLimit, emailRateLimitKey, ipRateLimitKey } from "@/lib/security/rate-limit";
 
 const emailSchema = z.object({
   email: z.email().max(254),
@@ -9,7 +9,11 @@ const emailSchema = z.object({
 
 /**
  * Lien magique par e-mail — mode d'authentification principal (PRD §15).
- * Validation zod + limitation de débit (10/15 min par IP + par e-mail).
+ * Connexion seule : les inscriptions publiques sont désactivées (config
+ * Supabase, décision M6) — un e-mail inconnu est traité exactement comme
+ * un e-mail connu (réponse identique, pas d'énumération de comptes).
+ * Limitation de débit PAR IP ET PAR E-MAIL (e-mail haché avec sel HMAC,
+ * jamais en clair dans les compteurs).
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
 
   const [byIp, byEmail] = await Promise.all([
     checkRateLimit(ipRateLimitKey(request.headers, "auth_magic_ip"), 10, 900),
-    checkRateLimit(`auth_magic_email:${email.toLowerCase()}`, 5, 900),
+    checkRateLimit(emailRateLimitKey(email, "auth_magic_email"), 5, 900),
   ]);
   if (!byIp || !byEmail) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });

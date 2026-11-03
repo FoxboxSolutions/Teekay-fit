@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createHash } from "node:crypto";
 import { isValidOrderStatusTokenFormat, lookupOrderStatus } from "@/lib/orders/status";
 

@@ -61,6 +61,18 @@ function rateLimitSalt(): string {
 }
 
 /**
+ * Clé de rate limit par E-MAIL : HMAC-SHA256 (sel d'env, e-mail normalisé).
+ * L'e-mail en clair n'atteint jamais la table `rate_limit_counters` —
+ * l'e-mail est déjà une donnée personnelle : seul son hash avec sel est
+ * compteur (décision augmentée M6, même règle que l'IP).
+ */
+export function emailRateLimitKey(email: string, prefix: string): string {
+  const normalized = email.trim().toLowerCase();
+  const digest = createHmac("sha256", rateLimitSalt()).update(normalized).digest("hex");
+  return `${prefix}:${digest}`;
+}
+
+/**
  * Clé de rate limit par IP : HMAC-SHA256 (sel d'env, IP) — l'IP en clair
  * n'atteint jamais la table `rate_limit_counters`. Accepte n'importe quel
  * objet « en-têtes » (`Headers` des routes, `await headers()` des pages).

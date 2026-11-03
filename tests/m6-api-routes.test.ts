@@ -72,6 +72,7 @@ vi.mock("@/lib/supabase/admin", () => {
 
 vi.mock("@/lib/security/rate-limit", () => ({
   checkRateLimit: () => !(state.ipLimited || state.emailLimited),
+  emailRateLimitKey: (email: string, prefix: string) => `${prefix}:${email.length}`,
   ipRateLimitKey: () => "ip-hash",
   clientIp: () => "203.0.113.9",
 }));

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { leadFormGuard } from "@/lib/leads/guard";
-import { checkRateLimit } from "@/lib/security/rate-limit";
+import { checkRateLimit, emailRateLimitKey } from "@/lib/security/rate-limit";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { createStatusToken } from "@/lib/payments/status-token";
 import { getPaymentProvider } from "@/lib/payments/loader";
@@ -129,10 +129,9 @@ export async function POST(request: Request) {
   }
   const input = parsed.data;
 
-  // Limitation de débit PAR E-MAIL (complément de l'IP) : seul un hash du
-  // mail entre en base (jamais l'e-mail en clair dans les compteurs).
-  const emailBucket = `order_email_${createHash("sha256").update(input.email.toLowerCase()).digest("hex")}`;
-  const emailOk = await checkRateLimit(emailBucket, 5, 600);
+  // Limitation de débit PAR E-MAIL (complément de l'IP) : seul un hash
+  // salé du mail entre en base (jamais l'e-mail en clair dans les compteurs).
+  const emailOk = await checkRateLimit(emailRateLimitKey(input.email, "order_email"), 5, 600);
   if (!emailOk) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
