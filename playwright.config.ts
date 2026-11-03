@@ -21,5 +21,13 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // M6 : parcours de commande E2E contre le fournisseur fictif —
+    // dev/preview explicite UNIQUEMENT (garde APP_ENV au démarrage).
+    env: {
+      APP_ENV: "development",
+      PAYMENT_PROVIDER: "fake",
+      // PAYMENT_WEBHOOK_SECRET volontairement absent : le défaut
+      // fake-only-local-secret est partagé avec le test (aucun secret réel).
+    },
   },
 });
