@@ -216,6 +216,7 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 
 **Audit M4 (a–d) — livré :**
 - **(a) strict placeholders/WhatsApp** : déjà livré — `scripts/check-placeholders.mjs --strict`, `build:prod` (package.json), job CI `content-strict`, `tests/placeholders.test.ts`.
+- Re-pré-audit avant M7a (sorties complètes présentées en séance, complément commit `28ea35c`) : M4 confirmé — comingSoon gate live (`check-manifest.json` + `tests/placeholders.test.ts`, `tests/routes-static.test.ts`), WhatsApp +213 (`tests/placeholders.test.ts` L73/L100), pages /legal placeholders détectées (mécanisme livré ; contenu juriste reste ouvert), `getOffers` + `/api/health` (`tests/offers-health.test.ts`), fuite PAR-Q impossible (`tests/aptitude-form.test.tsx` + `tests/rls.test.ts` L292 restriction `aptitude_questionnaires`), noindex hors production (`src/proxy.ts` + `tests/indexing.test.ts` + `tests/env.test.ts`) ; complément sonde RLS live (matrice anon/A/admin sur les 8 tables M6 — écritures refusées conformément au design, écriture uniquement via RPC/service role) ; seul écart constaté : test méta noindex de `/fr/orders/status` manquant → complété `28ea35c`.
 - **(b) observabilité offres** : partiel → corrigé — `getOffers` journalise (`offers.fetch_failed`/`fetch_exception`), `/api/health` passe en 503 degraded si zéro offre ou décompte inexploitable — `tests/offers-health.test.ts` (5 tests, client Supabase simulé), commit `555717d`.
 - **(c) tests PAR-Q** : déjà livré — `tests/aptitude-form.test.tsx` (aucune écriture storage, pas d'appel réseau, aucune URL de paiement côté client).
 - **(d) APP_ENV** : livré et **complété en séance** — module zod unique `src/lib/env.ts` (défaut sûr : argent/sécurité → production, indexation → noindex), tests `tests/env.test.ts` (5 cas × garde fake/simulateur/meta), `src/proxy.ts` (`X-Robots-Tag: noindex, nofollow` hors production), `src/app/robots.ts` (Disallow / ; production = Allow + sitemap), `src/app/sitemap.ts`, meta robots héritée (`layout.tsx`), `build:prod` + CI strict exigent `APP_ENV=production` explicite, `/api/health` expose `appEnv` — docs `.env.example` + `docs/environments.md#app_env`, commits `3a90bde`, `46cd791`, `93d1d47`. **Compléments (séance APP_ENV/audit) :** (1) garde fake au démarrage du processus — `src/lib/payments/loader.ts` (`assertPaymentProviderConfig`) appelé par le hook Next 16 `register()` de `src/instrumentation.ts` : `PAYMENT_PROVIDER=fake` + APP_ENV production/absente/invalide ⇒ le serveur refuse de démarrer (smoke vérifié : `next dev` exit 1) ; `tests/payment-provider-guard.test.ts` (12 tests, 5 cas), commit `4fe22a7`. (2) route `/fr/payment/simulate/[id]` — gate `paymentSimulateAllowed()` AVANT i18n/params (page `force-dynamic`, noindex), 200 seulement development/preview + fake, 404 (digest `NEXT_HTTP_ERROR_FALLBACK`) sinon ; `tests/payment-simulate-route.test.ts` (7 tests), smoke 200/404/exit-1 réel, commit `00c188e`. Base : `npm test` **298/298** (20 fichiers), typecheck/lint verts.
@@ -297,31 +298,38 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 
 ---
 
-### M7 — Confirmation paiement & BaridiMob manuel
+### M7a — Paiement manuel BaridiMob + reçus (scindé, décision tranchée)
 
-**Objectif :** Débloquer les produits uniquement après confirmation vérifiée côté serveur, avec le fournisseur retenu et le repli manuel BaridiMob audité, et émettre les reçus.
+**Objectif :** Débloquer les produits uniquement après confirmation vérifiée côté serveur, avec le paiement manuel BaridiMob audité, la vérification admin protégée MFA et les reçus PDF.
 
-**Checklist :**
+**Décision de cadrage :** M7 est scindé — **M7a (manuel BaridiMob + reçus, maintenant)** et **M7b (intégration SlickPay/Chargily, après décision légale** via le statut juridique/marchand ; derrière l'interface `PaymentProvider` M6 existante, sans toucher aux routes).
+
+**Checklist M7a :**
+- [ ] Instructions de paiement BaridiMob configurées par le propriétaire en base (table de paramètres éditable par admin — jamais en dur ni dans le dépôt), affichées avec la référence de commande à mettre en motif du virement ; le numéro de compte ne figure ni dans les journaux ni dans les événements
+- [ ] Soumission de preuve par le client : référence de transaction (format validé) + capture optionnelle — images uniquement (jpeg/png/webp), taille maximale, EXIF supprimé, nom de fichier regénéré, stockage privé, lecture admin uniquement via lien signé court ; paiement → `verifying` via `transition_payment`
+- [ ] Contrôles anti-fraude : même référence de transaction sur deux commandes ⇒ drapeau visible à l'admin ; montant attendu affiché à côté de la preuve ; confirmation exige la saisie du montant reçu (montant différent ⇒ refusé ou marqué avec motif)
+- [ ] Vérification admin minimale `/admin/payments` : liste des paiements `verifying`, détail, confirmer/rejeter avec motif — rôle admin **ET session MFA vérifiée (aal2)** côté serveur ; chaque action dans `audit_logs` (acteur, motif, horodatage) ; aucune confirmation sans aal2
+- [ ] MFA (en M7a, décalé depuis M9) : enrôlement + défi TOTP avec affichage et téléchargement des codes de secours ; le reste du dashboard reste en M9
+- [ ] À la confirmation : ouverture des entitlements (déjà en place), envoi du lien magique et du reçu via l'interface `Mailer` RÉELLE (fournisseur configurable par variables d'environnement, sans valeur en dur ; en dev/test CaptureMailer) ; envois idempotents ; rejet ⇒ message neutre avec marche à suivre
+- [ ] Reçu PDF généré côté serveur depuis la copie figée de la commande (pas de recalcul) : numéro de commande, date, offre, montant, mode de paiement ; intitulé « REÇU » (pas « facture ») tant que le comptable n'a pas validé les mentions ; polices du design system ; téléchargeable depuis la page de statut (jeton) et l'espace client
+- [ ] Fenêtre de paiement : durée de validité d'une commande `pending_payment` configurable, message clair au client ; expiration automatique reste en M12 (pg_cron)
+- [ ] Une capture d'écran ne suffit jamais comme preuve de paiement ; jamais de demande de mot de passe, PIN, OTP ou identifiants bancaires au client
+- [ ] Paiement accessoire / vérification en cours : la page de statut (et l'e-mail de rejet neutralisé) affichent « paiement en cours de vérification », jamais un faux succès
+- [ ] Paiement arrivant après annulation : aucune ouverture automatique ; réouverture manuelle par l'admin avec audit
+- [ ] Scénarios testés : sans aal2 ⇒ refus ; référence dupliquée ⇒ signalée ; montant différent ⇒ refusé ; fichier/taile invalide ⇒ refusé ; EXIF supprimé ; un client ne lit jamais la capture d'un autre ; confirmation ⇒ droit ouvert une seule fois + e-mail une seule fois (rejeu) ; reçu cohérent avec la copie figée ; RLS étendue ; E2E Playwright commande → preuve → confirmation admin (MFA simulé) → statut confirmé
+
+**Hors périmètre M7a :** intégration fournisseur réel (M7b), livraison des PDF achetés et filigrane (M8), dashboard complet (M9). Zoom communication WhatsApp pré-remplie (sans affirmation de livraison ni intégration officielle) : reportée explicitement au calendrier général (après M7b), ni dans M7a ni dans M7b.
+
+**Points ouverts M7a :** (1) mentions légales du reçu (« REÇU » vs « facture ») à valider par le comptable — intitulé REÇU en attendant ; (2) fournisseur d'e-mail réel + DNS teekay.fit (SPF/DKIM/DMARC) ; (3) durée de vie des captures de preuve (conservation/suppression, juriste) ; (4) statut juridique pour M7b.
+
+### M7b — Intégration fournisseur réel (SlickPay/Chargily)
+
+**Objectif :** Brancher la passerelle retenue derrière l'interface `PaymentProvider` (M6), sans changer les routes ni le noyau de transitions.
+
+**Checklist M7b :**
 - [ ] Intégration du fournisseur retenu (SlickPay : cartes CIB et Edahabia ; ou Chargily Pay) : création, vérification serveur, notifications authentifiées, référence, cas échoué/annulé/retardé/dupliqué, réconciliation
-- [ ] Seule une confirmation vérifiée côté serveur déclenche la livraison, une seule fois
-- [ ] Repli manuel BaridiMob : instructions de paiement configurées par le propriétaire avec la référence de commande unique à mettre en motif du virement
-- [ ] Saisie de la référence de transaction et, si besoin, capture du reçu → passage en `verifying`
-- [ ] Un administrateur autorisé vérifie les fonds via le canal officiel, puis confirme ou rejette (administrateur, horodatage et motif enregistrés dans `audit_logs`)
-- [ ] Une capture d'écran ne suffit pas comme preuve ; jamais de demande de mot de passe, PIN, OTP ou identifiants bancaires
-- [ ] Si la confirmation tarde : afficher « paiement en cours de vérification », jamais un faux succès
-- [ ] Reçu PDF automatique avec numéro de commande, envoyé par e-mail et téléchargeable
-- [ ] Notifications e-mail : instructions de paiement, paiement confirmé ou rejeté — idempotentes et rejouables sans doublon
-- [ ] Confirmation manuelle limitée aux utilisateurs autorisés et auditée
-- [ ] WhatsApp : message pré-rempli au départ, aucune affirmation de livraison sans intégration officielle
-- [ ] Scénarios testés en préproduction : échec, annulation, retard, notification dupliquée (tests approfondis en M11)
-
-**Livrables :** flux de paiement fournisseur opérationnel, flux BaridiMob manuel documenté et testé avec accès admin restreint, reçus PDF.
-
-**Critères d'acceptation (§18 — Commandes et paiements) :** un paiement en attente n'ouvre aucun accès ; une confirmation ouvre le droit une seule fois ; la confirmation manuelle est limitée aux utilisateurs autorisés et auditée ; le client voit un statut de paiement exact ; les notifications dupliquées ne créent aucun doublon.
-
-**Dépendances :** M1 (choix fournisseur, statut légal et compte bancaire professionnel pour le paiement direct), M2, M6.
-
-**Risques principaux (§20) :** passerelle indisponible ou conditions non remplies → repli manuel BaridiMob ; exigences légales bloquant les paiements → avis juriste (M1) ; doublons de notifications → idempotence ; faux succès affiché au client.
+- [ ] Webhooks signés du fournisseur traités par l'abstraction existante (`verifyWebhook` sur corps brut, dédoublonnage `payment_events`)
+- [ ] Dépendance : décision légale/statut du propriétaire (avis juriste M1) — bloquant, aucune date promise
 
 ---
 
