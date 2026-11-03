@@ -226,8 +226,10 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-# M6 : même décision — aucune inscription publique par e-mail.
-enable_signup = false
+# Ce switch NE bloque PAS les logins par mot de passe (le blocage total des
+# inscriptions publiques vient du switch global [auth] enable_signup=false) ;
+# le laisser à false désactiverait aussi les logins e-mail existants.
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -309,9 +311,11 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
+# M7a : TOTP actif (enrôlement + défi) — l'admin ET toute action de
+# confirmation de paiement exigent une session aal2.
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]
