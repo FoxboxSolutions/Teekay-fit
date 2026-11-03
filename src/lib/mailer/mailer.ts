@@ -37,7 +37,7 @@ export class CaptureMailer implements Mailer {
 
 /** Repli explicite : aucun envoi (aucune exception, jamais de crash sur l'email). */
 export class NullMailer implements Mailer {
-  async send(_mail: Mail): Promise<boolean> {
+  async send(): Promise<boolean> {
     return false;
   }
 }

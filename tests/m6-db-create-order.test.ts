@@ -269,7 +269,7 @@ describe("create_order — idempotence", () => {
 describe("create_order — codes promo (arrondi entier DA, plafonds, max_uses)", () => {
   it("pourcentage : arrondi UNIQUE en entier de DA, demi-DA vers le haut (offre de prix cassé 1 955 — 10 % ⇒ 196)", async () => {
     // Offre de test à prix non rond pour prouver l'arrondi demi supérieur.
-    const { data: offer, error: offerErr } = await service
+    const { error: offerErr } = await service
       .from("offers")
       .insert({
         slug: `${runId}-oddprice`,

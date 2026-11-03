@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 /**
  * Couche fournisseur indépendante (M6) : la route ne connaît QUE cette
  * interface. Les fournisseurs réels (SlickPay, Chargily — M7) et le BaridiMob
