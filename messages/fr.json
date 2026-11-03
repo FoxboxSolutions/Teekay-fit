@@ -516,5 +516,31 @@
       "cancelled": "Annulée",
       "currency": "DA"
     }
+  },
+  "admin": {
+    "mfa": {
+      "metaTitle": "Sécurité administrateur",
+      "notSignedIn": "Session requise. Connectez-vous avant d'accéder à cette page.",
+      "notAdmin": "Accès réservé aux administrateurs.",
+      "enrollTitle": "Activer la double authentification (TOTP)",
+      "enrollIntro": "Générez un code dans votre application d'authentification (ex. Google Authenticator) avec le QR code ci-dessous, puis saisissez le code à 6 chiffres pour vérifier l'activation.",
+      "startEnroll": "Générer mon QR code",
+      "qrAlt": "QR code d'enrôlement TOTP",
+      "secretLabel": "Clé secrète (saisie manuelle)",
+      "codeLabel": "Code à 6 chiffres",
+      "verify": "Vérifier et activer",
+      "verifying": "Vérification…",
+      "invalidCode": "Code invalide ou expiré. Réessayez.",
+      "rateLimited": "Trop de tentatives. Attendez quelques minutes.",
+      "enrollFailed": "Échec de l'activation. Réessayez.",
+      "activeTitle": "Double authentification active sur cette session",
+      "activeIntro": "Votre session est vérifiée (second facteur validé). Vous pouvez accéder aux actions de confirmation.",
+      "recoveryTitle": "Codes de secours",
+      "recoveryIntro": "Affichés une seule fois. Chaque code ne peut être utilisé qu'une seule fois si vous perdez l'accès à votre application. Enregistrez-les maintenant.",
+      "downloadCodes": "Télécharger mes codes de secours",
+      "codesFile": "teekay-fit-codes-de-secours.txt",
+      "stepEnroll": "Étape 1 : activation",
+      "stepVerify": "Étape 2 : vérification du défi"
+    }
   }
 }
