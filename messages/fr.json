@@ -489,5 +489,14 @@
         "motion": "Animations sobres, neutralisées si l'utilisateur demande « réduire les animations »."
       }
     }
+  },
+  "payment": {
+    "simulate": {
+      "metaTitle": "Simulation de paiement",
+      "title": "Simulation de paiement",
+      "intro": "Outil du fournisseur fictif (PAYMENT_PROVIDER=fake). Aucun paiement réel n'est traité sur cette page.",
+      "reference": "Référence",
+      "notice": "Disponible uniquement en development et preview ; la page renvoie 404 dans tout autre cas."
+    }
   }
 }
