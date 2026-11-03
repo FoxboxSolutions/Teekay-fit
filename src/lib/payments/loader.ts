@@ -1,13 +1,19 @@
 import { allowsFakePaymentProvider, appEnvStatus } from "@/lib/env";
+import type { PaymentProvider } from "./provider";
+import { FakePaymentProvider } from "./fake";
 
 /**
- * Présentation du fournisseur(s) de paiement. Les valeurs valides sont
- * fixées par la contrainte SQL `payments_provider_check` (migration
- * 20261102100000) : slickpay, chargily, manual, fake.
+ * Couche fournisseur (M6, décision amendement 5).
+ *
+ * Les valeurs valides sont fixées par la contrainte SQL
+ * `payments_provider_check` (migration 20261102100000) :
+ * slickpay, chargily, manual, fake.
  */
 export const PAYMENT_PROVIDERS = ["slickpay", "chargily", "manual", "fake"] as const;
 
-export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
+export type PaymentProviderName = (typeof PAYMENT_PROVIDERS)[number];
+
+export class PaymentProviderConfigError extends Error {}
 
 /**
  * Garde provider fictif « fake » (étape 1 / décision APP_ENV) :
@@ -22,8 +28,6 @@ export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
  *
  * Aucun secret ici — ce module ne lit que des flags de configuration.
  */
-export class PaymentProviderConfigError extends Error {}
-
 export function assertPaymentProviderConfig(
   provider: string | undefined = process.env.PAYMENT_PROVIDER,
   appEnv: string | undefined = process.env.APP_ENV,
@@ -36,4 +40,33 @@ export function assertPaymentProviderConfig(
       "(attendu : development ou preview explicite). " +
       "Le processus ne démarre pas en production.",
   );
+}
+
+/**
+ * Fabrique du fournisseur courant (dépend uniquement de PAYMENT_PROVIDER) :
+ *  - absent/vide ⇒ null : aucun paiement en ligne (la commande reste
+ *    `pending_payment` sans paiement — l'admin/agenda gère le flux hors
+ *    ligne, M7 pour le manuel BaridiMob) ;
+ *  - fake ⇒ garde + implémentation fictive (dev/preview uniquement) ;
+ *  - manual ⇒ null pour l'instant (création online à partir du M7) ;
+ *  - slickpay/chargily ⇒ refus explicite : un fournisseur réel avec un
+ *    code d'intégration incomplet doit se voir refuser le démarrage
+ *    plutôt que de simuler un paiement.
+ */
+export function getPaymentProvider(
+  provider: string | undefined = process.env.PAYMENT_PROVIDER,
+): PaymentProvider | null {
+  const name = (provider ?? "").trim().toLowerCase();
+  if (name === "") return null;
+  if (name === "fake") {
+    assertPaymentProviderConfig(provider);
+    return new FakePaymentProvider();
+  }
+  if (name === "manual") return null;
+  if (name === "slickpay" || name === "chargily") {
+    throw new PaymentProviderConfigError(
+      `PAYMENT_PROVIDER=${name} non implémenté (prévu au M7) : aucun paiement ne doit être simulé.`,
+    );
+  }
+  throw new PaymentProviderConfigError(`PAYMENT_PROVIDER=${name} inconnu.`);
 }
