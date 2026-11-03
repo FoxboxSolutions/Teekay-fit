@@ -541,6 +541,37 @@
       "codesFile": "teekay-fit-codes-de-secours.txt",
       "stepEnroll": "Étape 1 : activation",
       "stepVerify": "Étape 2 : vérification du défi"
+    },
+    "payments": {
+      "metaTitle": "Paiements à vérifier",
+      "mfaRequired": "Session non vérifiée. Passez le défi de double authentification avant d'accéder aux paiements.",
+      "goMfa": "Vérifier maintenant",
+      "empty": "Aucun paiement en cours de vérification.",
+      "listTitle": "Paiements en cours de vérification",
+      "reference": "Référence",
+      "expectedAmount": "Montant attendu",
+      "orderStatus": "Statut commande",
+      "proofs": "Preuves soumises",
+      "txnRef": "Référence de transaction",
+      "capture": "Voir la capture",
+      "noCapture": "Sans capture",
+      "duplicateFlag": "⚠ Référence de transaction déjà utilisée sur une autre commande",
+      "reviewFlag": "⚠ Commande à revoir",
+      "confirmTitle": "Confirmer",
+      "amountLabel": "Montant reçu (DA)",
+      "confirmAction": "Confirmer le paiement",
+      "rejectTitle": "Rejeter",
+      "reasonLabel": "Motif (obligatoire)",
+      "rejectAction": "Rejeter",
+      "confirmed": "Paiement confirmé.",
+      "rejected": "Paiement rejeté avec motif.",
+      "amountInvalid": "Montant différent : confirmation refusée.",
+      "reasonMissing": "Motif requis (3 caractères minimum).",
+      "mfaRequiredAction": "Session non vérifiée : reconnectez le défi MFA.",
+      "reload": "Recharger la liste",
+      "loading": "Chargement…",
+      "error": "Erreur de chargement. Réessayez.",
+      "indisponible": "Service momentanément indisponible. Réessayez."
     }
   }
 }
