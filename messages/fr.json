@@ -351,6 +351,15 @@
     "cta": "Voir les coaching",
     "notFound": "Cette discipline n'existe pas."
   },
+  "auth": {
+    "confirm": {
+      "metaTitle": "Connexion — TeekayFit",
+      "title": "Connexion à votre espace",
+      "intro": "Un seul clic suffit : ce lien est personnel et à usage unique.",
+      "signIn": "Se connecter",
+      "expired": "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien de connexion depuis la page de suivi de votre commande."
+    }
+  },
   "error": {
     "title": "Une erreur est survenue",
     "retry": "Réessayer"

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdminAal2 } from "@/lib/auth/session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { notifyPaymentConfirmed } from "@/lib/payments/notify";
+import { notifyPdfAccess } from "@/lib/auth/customer-access";
 
 /**
  * M7a — CONFIRMATION d'un paiement vérifié (route admin).
@@ -129,10 +130,14 @@ export async function POST(
     );
   }
 
-  // Notification client : UNE SEULE FOIS (outbox unique payment+event),
-  // seulement quand la transition est réellement appliquée, jamais sur un
-  // rejeu (« unchanged » ⇒ renvoyé avant ce point, sans envoi ni audit).
+  // Notifications client : UNE SEULE FOIS chacune (outbox unique
+  // payment+event), seulement quand la transition est réellement appliquée,
+  // jamais sur un rejeu (« unchanged » ⇒ renvoyé avant ce point).
+  // - payment_confirmed : reçu BaridiMob + lien de suivi (M7a) ;
+  // - pdf_access (M8) : compte client + lien de connexion unique vers
+  //   l'espace — NI fichier NI lien de téléchargement direct.
   await notifyPaymentConfirmed({ paymentId: payment.id, orderId: payment.order_id });
+  await notifyPdfAccess({ paymentId: payment.id, orderId: payment.order_id });
 
   return NextResponse.json({ ok: true, unchanged: false });
 }

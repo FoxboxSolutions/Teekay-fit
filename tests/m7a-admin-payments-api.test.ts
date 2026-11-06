@@ -29,6 +29,7 @@ const fake = vi.hoisted(() => ({
   paymentReadQueue: [] as unknown[][],
   notifyConfirmedCalls: [] as { paymentId: string; orderId: string }[],
   notifyRejectedCalls: [] as { paymentId: string; orderId: string }[],
+  notifyPdfAccessCalls: [] as { paymentId: string; orderId: string }[],
 }));
 
 vi.mock("@/lib/auth/session", () => ({
@@ -114,6 +115,15 @@ vi.mock("@/lib/payments/notify", () => ({
   },
 }));
 
+// M8 : l'e-mail « accès aux PDF » est câblé après notifyPaymentConfirmed —
+// mocké ici (contrat M8 testé dans tests/m8-db-customer-chain.test.ts).
+vi.mock("@/lib/auth/customer-access", () => ({
+  notifyPdfAccess: async (input: { paymentId: string; orderId: string }) => {
+    fake.notifyPdfAccessCalls.push(input);
+    return { status: "sent" as const };
+  },
+}));
+
 type RouteModule = typeof import("@/app/api/admin/payments/route");
 type ConfirmModule = typeof import("@/app/api/admin/payments/[id]/confirm/route");
 type RejectModule = typeof import("@/app/api/admin/payments/[id]/reject/route");
@@ -159,6 +169,7 @@ beforeEach(() => {
   fake.proofError = null;
   fake.notifyConfirmedCalls = [];
   fake.notifyRejectedCalls = [];
+  fake.notifyPdfAccessCalls = [];
 });
 
 describe("liste — garde aal2 sur GET", () => {
