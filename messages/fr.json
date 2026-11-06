@@ -555,6 +555,8 @@
       "receiptTitle": "Reçu de paiement",
       "receiptText": "Votre paiement est confirmé : téléchargez votre reçu au format PDF.",
       "receiptAction": "Télécharger le reçu (PDF)",
+      "accessAction": "Accéder à mon espace",
+      "accessSent": "Demande enregistrée : si votre paiement est confirmé, un e-mail de connexion part vers l'adresse de votre commande pour accéder à votre espace et à vos PDF.",
       "proof": {
         "title": "Envoyer la preuve de paiement",
         "txnLabel": "Référence de la transaction BaridiMob",

@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { ProofForm } from "@/components/orders/proof-form";
+import { AccessButton } from "@/components/orders/access-button";
 import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 import {
   isValidOrderStatusTokenFormat,
@@ -228,6 +229,9 @@ export default async function OrderStatusPage({
           >
             {t("receiptAction")}
           </a>
+          {/* M8 : relance d'accès à l'espace client — e-mail de connexion
+              seul (aucun lien de téléchargement dans le mail). */}
+          <AccessButton statusToken={token} />
         </Card>
       )}
     </main>
