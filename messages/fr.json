@@ -360,6 +360,22 @@
       "expired": "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien de connexion depuis la page de suivi de votre commande."
     }
   },
+  "account": {
+    "accessEmail": "Teekay Fit — accéder à votre espace et vos PDF",
+    "metaTitle": "Mes commandes et mes PDF — TeekayFit",
+    "title": "Mes commandes et mes PDF",
+    "intro": "Vos commandes, leur statut de paiement exact et le téléchargement de vos PDF, depuis l'espace créé après votre achat.",
+    "signedOutTitle": "Espace client",
+    "signedOutText": "Cette page est personnelle : connectez-vous avec le lien de connexion reçu après votre commande pour afficher vos commandes et vos PDF.",
+    "followOrder": "Suivre ma commande",
+    "emptyTitle": "Aucune commande",
+    "emptyText": "Aucune commande n'est associée à votre compte pour le moment.",
+    "receipt": "Télécharger le reçu",
+    "filesTitle": "Mes PDF",
+    "download": "Télécharger le PDF",
+    "noFiles": "Aucun PDF disponible pour cette commande.",
+    "rightInactive": "Téléchargements non actifs : droit expiré ou révoqué."
+  },
   "error": {
     "title": "Une erreur est survenue",
     "retry": "Réessayer"

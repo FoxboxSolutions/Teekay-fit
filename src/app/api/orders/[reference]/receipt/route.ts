@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth/session";
 import {
   isValidOrderStatusTokenFormat,
   lookupOrderStatus,
@@ -8,13 +10,16 @@ import {
 import { generateOrderReceipt } from "@/lib/payments/receipt";
 
 /**
- * M7a bloc 6 — téléchargement du reçu PDF par le client :
- * GET /api/orders/[reference]/receipt?statusToken=...
- * Le jeton de statut EST la capacité de téléchargement (seul le hash est
- * en base, expiration appliquée en requête). Le reçu n'existe que si le
- * paiement est confirmé (order.status = 'paid') ; sinon réponse neutre
- * 404 — aucune différence observable entre commande inconnue, jeton
- * expiré ou paiement non confirmé. Limitation de débit par IP hachée.
+ * Téléchargement du reçu PDF — DEUX entrées, mêmes réponses neutres :
+ *
+ *  - M7a : `?statusToken=...` — le jeton EST la capacité (seul le hash est
+ *    en base, expiration appliquée en requête). Comportement inchangé ;
+ *  - M8 : session connectée (page « Mes commandes ») — le droit est la
+ *    propriété RLS de la commande + paiement confirmé. Même 404 neutre en
+ *    cas d'échec (jamais d'oracle sur l'existence d'une commande).
+ *
+ * Un `statusToken` PRÉSENT reste traité UNIQUEMENT par le jeton (jamais de
+ * repli session : le jeton malformé/inconnu garde son 404 strict).
  */
 export async function GET(
   request: Request,
@@ -25,36 +30,57 @@ export async function GET(
 
   const { reference } = await params;
   const url = new URL(request.url);
-  const statusToken = url.searchParams.get("statusToken") ?? "";
+  const statusToken = url.searchParams.get("statusToken");
 
-  if (
-    !/^[A-Za-z0-9][A-Za-z0-9-]{3,60}$/.test(reference) ||
-    !isValidOrderStatusTokenFormat(statusToken) ||
-    statusToken.length < 16
-  ) {
+  if (!/^[A-Za-z0-9][A-Za-z0-9-]{3,60}$/.test(reference)) {
     return new NextResponse(null, { status: 404 });
   }
 
   try {
-    const lookup = await lookupOrderStatus(statusToken);
-    if (lookup.status === "missing" || lookup.order.reference !== reference) {
-      return new NextResponse(null, { status: 404 });
-    }
-    if (lookup.order.order_status !== "paid") {
-      return new NextResponse(null, { status: 404 });
+    let orderId: string | null = null;
+
+    if (statusToken !== null) {
+      // ---- Branche jeton (M7a) : comportement strictement inchangé. ----
+      if (!isValidOrderStatusTokenFormat(statusToken) || statusToken.length < 16) {
+        return new NextResponse(null, { status: 404 });
+      }
+      const lookup = await lookupOrderStatus(statusToken);
+      if (lookup.status === "missing" || lookup.order.reference !== reference) {
+        return new NextResponse(null, { status: 404 });
+      }
+      if (lookup.order.order_status !== "paid") {
+        return new NextResponse(null, { status: 404 });
+      }
+      // L'id de la commande est relu par référence (le jeton ne porte jamais d'id).
+      const { data: orderRow } = await createSupabaseAdminClient()
+        .from("orders")
+        .select("id")
+        .eq("reference", reference)
+        .eq("status", "paid")
+        .limit(1);
+      orderId = (orderRow ?? [])[0]?.id ?? null;
+    } else {
+      // ---- Branche session (M8) : page « Mes commandes ». ----
+      // La RLS (orders_select_own) ne renvoie QUE les commandes du profil
+      // connecté — un identifiant deviné ou celui d'autrui ⇒ rien ⇒ 404
+      // identique. Paiement confirmé exigé (aucun reçu sur commande non
+      // payée).
+      const auth = await getAuthContext();
+      if (!auth) return new NextResponse(null, { status: 404 });
+
+      const supabase = await createSupabaseServerClient();
+      const { data: orderRow } = await supabase
+        .from("orders")
+        .select("id,status")
+        .eq("reference", reference)
+        .eq("status", "paid")
+        .limit(1);
+      orderId = (orderRow ?? [])[0]?.id ?? null;
     }
 
-    // L'id de la commande est relu par référence (le jeton ne porte jamais d'id).
-    const { data: orderRow } = await createSupabaseAdminClient()
-      .from("orders")
-      .select("id")
-      .eq("reference", reference)
-      .eq("status", "paid")
-      .limit(1);
-    const id = (orderRow ?? [])[0]?.id;
-    if (typeof id !== "string") return new NextResponse(null, { status: 404 });
+    if (typeof orderId !== "string") return new NextResponse(null, { status: 404 });
 
-    const receipt = await generateOrderReceipt(id);
+    const receipt = await generateOrderReceipt(orderId);
     if (!receipt.found) return new NextResponse(null, { status: 404 });
 
     return new NextResponse(new Uint8Array(receipt.pdf), {
