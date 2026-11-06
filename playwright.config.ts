@@ -26,6 +26,9 @@ export default defineConfig({
     env: {
       APP_ENV: "development",
       PAYMENT_PROVIDER: "fake",
+      // M7a : e-mails = capture locale (aucun envoi réel en E2E) ;
+      // l'outbox marque alors les notifications « sent ».
+      MAILER_PROVIDER: "capture",
       // PAYMENT_WEBHOOK_SECRET volontairement absent : le défaut
       // fake-only-local-secret est partagé avec le test (aucun secret réel).
     },
