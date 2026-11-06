@@ -35,6 +35,12 @@ vi.mock("@/components/site/whatsapp-button", () => ({
   WhatsAppButton: () => null,
 }));
 
+vi.mock("@/lib/settings", () => ({
+  getBaridimobInstructions: async () => ({ account: null, bank: null, beneficiary: null, note: null }),
+  getPaymentWindowHours: async () => 48,
+  isPaymentWindowExpired: () => false,
+}));
+
 const page = (await import("@/app/[locale]/(public)/orders/status/page")) as PageModule;
 
 const params = Promise.resolve({ locale: "fr" }) as Promise<{ locale: string }>;
