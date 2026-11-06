@@ -29,7 +29,7 @@ vi.mock("@/lib/security/rate-limit", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: async () => ({
     auth: {
-      verifyOtp: async (input: { token_hash: string; type: string }) => {
+      verifyOtp: async () => {
         if (fake.verifyError) return { data: { user: null }, error: fake.verifyError };
         return { data: { user: fake.verifyUser }, error: null };
       },

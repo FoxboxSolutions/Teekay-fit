@@ -1,5 +1,6 @@
 import { CaptureMailer, NullMailer, type Mail, type Mailer } from "@/lib/mailer/mailer";
 import { isProductionLike } from "@/lib/env";
+import { recordDegraded } from "@/lib/observability/degraded";
 
 /**
  * Sélection du Mailer PAR VARIABLES D'ENVIRONNEMENT (aucune valeur en dur) :
@@ -32,6 +33,7 @@ export class ResendMailer implements Mailer {
           reason: "mailer_incomplete_config",
         }),
       );
+      recordDegraded("mailer", "incomplete_config");
       return false;
     }
 
@@ -51,11 +53,13 @@ export class ResendMailer implements Mailer {
       });
       // Rejet (4xx/5xx, quota, adresse invalide) : false — l'appelant
       // marque l'envoi échoué et reste NEUTRE vis-à-vis du client.
+      if (!response.ok) recordDegraded("mailer", "resend_refused");
       return response.ok;
     } catch {
       console.error(
         JSON.stringify({ level: "error", event: "mailer_send_network_error" }),
       );
+      recordDegraded("mailer", "resend_network_error");
       return false;
     }
   }

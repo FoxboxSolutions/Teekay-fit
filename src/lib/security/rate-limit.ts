@@ -85,3 +85,13 @@ export function ipRateLimitKey(
   const digest = createHmac("sha256", rateLimitSalt()).update(ip).digest("hex");
   return `${prefix}:${digest}`;
 }
+
+/**
+ * Clé de rate limit par UTILISATEUR connecté (M8 — téléchargements) :
+ * HMAC-SHA256 (sel d'env, user id) — même hygiène : la clé en base n'est
+ * jamais un identifiant en clair.
+ */
+export function userRateLimitKey(userId: string, prefix: string): string {
+  const digest = createHmac("sha256", rateLimitSalt()).update(userId).digest("hex");
+  return `${prefix}:${digest}`;
+}

@@ -65,6 +65,24 @@ export async function getPaymentWindowHours(): Promise<number> {
     : DEFAULT_PAYMENT_WINDOW_HOURS;
 }
 
+/**
+ * M8 — plafond de téléchargements PAR DROIT ET PAR JOUR (configurable en
+ * base par le propriétaire). Défaut proposé : 10 (à confirmer avec le
+ * coach — point ouvert milestone.md). Borné 1..1000 (valeur hors bornes
+ * ⇒ défaut, jamais un blocage total ni un plafond vide).
+ */
+const DEFAULT_DOWNLOADS_DAILY_LIMIT = 10;
+
+export async function getDownloadsDailyLimit(): Promise<number> {
+  const map = await readSettings(["downloads_daily_limit"]);
+  const raw = map.get("downloads_daily_limit");
+  if (!raw) return DEFAULT_DOWNLOADS_DAILY_LIMIT;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 1000
+    ? parsed
+    : DEFAULT_DOWNLOADS_DAILY_LIMIT;
+}
+
 /** Commande pending_payment hors fenêtre (serveur, à partir de created_at). */
 export function isPaymentWindowExpired(
   createdAt: string,

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getLocalEnv } from "./helpers/env";
@@ -66,6 +66,11 @@ describe("M8 bloc 0b — procédure premier admin", () => {
       "PRD — TeekayFit.md",
       ...readdirSync(docsDir).map((f) => `${docsDir}/${f}`),
     ];
+    // Le doc du premier admin existe et couvre les étapes exécutées.
+    const doc = readFileSync(DOC, "utf8");
+    expect(doc).toContain("magic-link");
+    expect(doc).toContain("user_roles");
+    expect(doc).toContain("MFA");
     // Motifs d'identifiants réels : affectation de secret longue, e-mail
     // codé en dur dans une commande curl, clé de service littérale.
     const patterns = [
