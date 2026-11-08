@@ -29,6 +29,10 @@ export default defineConfig({
       // M7a : e-mails = capture locale (aucun envoi réel en E2E) ;
       // l'outbox marque alors les notifications « sent ».
       MAILER_PROVIDER: "capture",
+      // M8 : le Mailer capture aussi en JSONL (bloc 6a) — c'est le seul
+      // moyen de lire le VRAI lien de connexion émis (GoTrue generateLink
+      // n'envoie aucun e-mail). Chemin déjà ignoré par git (test-results/).
+      MAILER_CAPTURE_FILE: "test-results/mailer-capture.ndjson",
       // PAYMENT_WEBHOOK_SECRET volontairement absent : le défaut
       // fake-only-local-secret est partagé avec le test (aucun secret réel).
     },

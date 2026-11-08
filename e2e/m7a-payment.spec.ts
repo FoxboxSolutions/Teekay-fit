@@ -209,8 +209,11 @@ test("commande → preuve → confirmation admin (MFA TOTP) → statut confirmé
     request,
     `email_outbox?payment_id=eq.${payment.id}&select=event_type,status`,
   );
-  expect(outbox).toHaveLength(1); // e-mail envoyé UNE SEULE FOIS (rejeu)
-  expect(outbox[0]).toMatchObject({ event_type: "payment_confirmed", status: "sent" });
+  // M8 : la confirmation envoie DEUX e-mails distincts (confirmation +
+  // accès PDF) — le rejeu n'en ajoute AUCUN : 1 de chaque, jamais 2.
+  expect(outbox).toHaveLength(2);
+  expect(outbox).toContainEqual({ event_type: "payment_confirmed", status: "sent" });
+  expect(outbox).toContainEqual({ event_type: "pdf_access", status: "sent" });
 
   const audits = await restGet(
     request,
