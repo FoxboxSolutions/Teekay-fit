@@ -1,3 +1,6 @@
+import { appendFileSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+
 /**
  * Interface Mailer (M6, décision amendement 10) : tout envoi d'e-mail
  * transactionnel (confirmation de commande neutre, lien magique — M7)
@@ -33,12 +36,32 @@ export interface Mailer {
  * Implémentation de TEST : capture locale en mémoire, aucun réseau.
  * Utilisée par vitest (et comme repli explicite quand aucune messagerie
  * n'est configurée — l'appelant décide de journaliser ou d'ignorer).
+ *
+ * Sink fichier OPTIONNEL (E2E / démo locale) : si MAILER_CAPTURE_FILE est
+ * défini, chaque e-mail est aussi ajouté en JSONL (append-only) — c'est le
+ * seul moyen pour Playwright de lire le VRAI lien de connexion envoyé par
+ * l'application (GoTrue `generateLink` n'envoie AUCUN e-mail, le Mailer est
+ * la seule voie). Aucun fichier sinon ; jamais défini en production (le
+ * providers réels sont Resend/NullMailer). Une échec d'écriture ne fait
+ * JAMAIS échouer un envoi : la capture est best-effort.
  */
+function persistCapture(mail: Mail): void {
+  const file = process.env.MAILER_CAPTURE_FILE;
+  if (!file) return;
+  try {
+    mkdirSync(dirname(file), { recursive: true });
+    appendFileSync(file, `${JSON.stringify({ ...mail, at: new Date().toISOString() })}\n`, "utf8");
+  } catch {
+    // Best-effort : la capture ne doit jamais casser un envoi d'e-mail.
+  }
+}
+
 export class CaptureMailer implements Mailer {
   readonly outbox: Mail[] = [];
 
   async send(mail: Mail): Promise<boolean> {
     this.outbox.push(mail);
+    persistCapture(mail);
     return true;
   }
 }
