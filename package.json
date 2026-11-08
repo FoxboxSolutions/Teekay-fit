@@ -17,6 +17,7 @@
     "test:e2e": "playwright test",
     "check:placeholders": "node scripts/check-placeholders.mjs",
     "check:placeholders:strict": "node scripts/check-placeholders.mjs --strict",
+    "check:pdfs": "node scripts/check-pdfs.mjs",
     "supabase": "supabase"
   },
   "dependencies": {

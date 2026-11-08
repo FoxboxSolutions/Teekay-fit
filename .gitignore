@@ -29,3 +29,8 @@ playwright-report/
 *.log
 .DS_Store
 Thumbs.db
+
+# PDF — jamais de PDF dans Git (sources des offres : bucket privé offer-files)
+# sauf fixtures de test (M8 bloc 5, garde CI scripts/check-pdfs.mjs)
+*.pdf
+!tests/fixtures/**/*.pdf

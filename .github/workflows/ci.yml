@@ -25,6 +25,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # M8 bloc 5 : aucun PDF tracké hors tests/fixtures/ — les sources des
+      # offres vivent dans le bucket privé offer-files, jamais dans Git.
+      - name: Garde PDF (aucun PDF hors fixtures)
+        run: npm run check:pdfs
+
       - name: Tests sans base (RTL + garde service-role)
         run: npx vitest run tests/rtl.test.ts tests/no-service-role-client.test.ts
 
