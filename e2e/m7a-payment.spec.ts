@@ -251,14 +251,8 @@ test("commande → preuve → confirmation admin (MFA TOTP) → statut confirmé
   const pdf = await receiptRes.body();
   expect(pdf.slice(0, 5).toString("ascii")).toBe("%PDF-");
 
-  // ── Nettoyage (audit_logs : append-only, non supprimé) ──────────────────
-  await request.delete(`${env.apiUrl}/rest/v1/orders?id=eq.${payment.order_id}`, {
-    headers: serviceHeaders,
-  });
-  await request.delete(`${env.apiUrl}/rest/v1/customers?email=eq.${email}`, {
-    headers: serviceHeaders,
-  });
-  await request.delete(`${env.apiUrl}/auth/v1/admin/users/${adminUser.id}`, {
-    headers: serviceHeaders,
-  });
+  // ── AUCUN nettoyage ─────────────────────────────────────────────────────
+  // Le global setup (`supabase db reset`, base locale uniquement) repart des
+  // migrations avant chaque run : aucune purge ici, et aucun chemin de
+  // suppression sur les tables append-only `audit_logs` / `payment_transitions`.
 });

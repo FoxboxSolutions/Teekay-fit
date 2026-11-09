@@ -1,5 +1,5 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { PDFDocument } from "@cantoo/pdf-lib";
 import { totp } from "../tests/helpers/totp";
 import { extractPdfText } from "../tests/helpers/pdf-text";
@@ -21,7 +21,10 @@ import { createStatusToken, hashStatusToken } from "../src/lib/payments/status-t
  *   → URL devinée : 401 sans session, 404 IDENTIQUE avec session
  *   → bouton « Accéder à mon espace » : réponse neutre + 2e e-mail réel.
  *
- * Tout est nettoyé en `finally` (audit append-only conservé, comme M7a).
+ * Base fraîche garantie par le global setup (`supabase db reset`, local
+ * uniquement — e2e/global-setup.ts) avant CHAQUE run : aucun purgatif en
+ * début ni en fin de test, et AUCUN chemin de suppression sur les tables
+ * append-only `audit_logs` / `payment_transitions` (invariants conservés).
  */
 
 function localSupabaseEnv(): { apiUrl: string; anonKey: string; serviceRoleKey: string } {
@@ -75,7 +78,11 @@ test("M8 E2E : dépôt fichier → confirmation → e-mail capturé → lien →
   request,
 }) => {
   test.setTimeout(180_000);
-  rmSync(CAPTURE_FILE, { force: true }); // capture neuve : aucun reliquat de run précédent
+  // ── Global setup (playwright.config) a fait le `supabase db reset` : la
+  // base repart des migrations, aucun purgatif n'est nécessaire ici —
+  // ni en fin de test (aucun « nettoyage » : la base locale est effacée
+  // avant le run suivant, et les invariants append-only sur audit_logs /
+  // payment_transitions restent intacts).
 
   const stamp = Date.now();
   const email = `e2e-m8-${stamp}@test.tkf`;
@@ -85,75 +92,14 @@ test("M8 E2E : dépôt fichier → confirmation → e-mail capturé → lien →
   const storagePath = `starter/e2e-${stamp}.pdf`;
   const phone = "+213555123456";
 
+  // La capture du Mailer est déjà tronquée par le global setup.
   const state = {
     reference: "" as string,
     orderId: "" as string,
     paymentId: "" as string,
-    adminUserId: "" as string,
     customerUserId: "" as string,
-    offerFileId: "" as string,
     email,
     storagePath,
-  };
-
-  // ── Nettoyage systématique (succès ou échec d'assertion) ────────────────
-  const cleanup = async (): Promise<void> => {
-    const attempt = async (fn: () => Promise<unknown>): Promise<void> => {
-      try {
-        await fn();
-      } catch (error) {
-        // Le nettoyage ne doit jamais masquer l'erreur du test — mais un
-        // échec doit rester visible dans la sortie du run.
-        console.warn(
-          `[M8 E2E] nettoyage ignoré : ${(error as Error).message.slice(0, 200)}`,
-        );
-      }
-    };
-    if (state.offerFileId) {
-      await attempt(() =>
-        request.delete(`${env.apiUrl}/rest/v1/offer_files?id=eq.${state.offerFileId}`, {
-          headers: serviceHeaders,
-        }),
-      );
-    }
-    await attempt(() =>
-      fetch(`${env.apiUrl}/storage/v1/object/offer-files/${storagePath}`, {
-        method: "DELETE",
-        headers: { apikey: env.serviceRoleKey, Authorization: `Bearer ${env.serviceRoleKey}` },
-      }),
-    );
-    if (state.reference) {
-      await attempt(() =>
-        request.delete(`${env.apiUrl}/rest/v1/orders?reference=eq.${state.reference}`, {
-          headers: serviceHeaders,
-        }),
-      );
-    }
-    await attempt(() =>
-      request.delete(`${env.apiUrl}/rest/v1/customers?email=eq.${email}`, {
-        headers: serviceHeaders,
-      }),
-    );
-    // Compte client créé par notifyPdfAccess (M8) : supprimé aussi.
-    await attempt(async () => {
-      const rpc = await request.post(`${env.apiUrl}/rest/v1/rpc/find_auth_user_id_by_email`, {
-        headers: serviceHeaders,
-        data: { p_email: email },
-      });
-      const userId = (await rpc.json()) as string | null;
-      if (userId) {
-        await request.delete(`${env.apiUrl}/auth/v1/admin/users/${userId}`, {
-          headers: serviceHeaders,
-        });
-      }
-    });
-    if (state.adminUserId) {
-      await attempt(() =>
-        request.delete(`${env.apiUrl}/auth/v1/admin/users/${state.adminUserId}`, {
-          headers: serviceHeaders,
-        }),
-      );
-    }
   };
 
   try {
@@ -195,7 +141,6 @@ test("M8 E2E : dépôt fichier → confirmation → e-mail capturé → lien →
     expect(offerFileId, "id offer_files absent de la réponse").toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
     );
-    state.offerFileId = offerFileId ?? "";
 
     // ── 2) Admin réel (compte + rôle) + session cookie @supabase/ssr ─────
     const createUserRes = await request.post(`${env.apiUrl}/auth/v1/admin/users`, {
@@ -204,7 +149,6 @@ test("M8 E2E : dépôt fichier → confirmation → e-mail capturé → lien →
     });
     expect([200, 201]).toContain(createUserRes.status());
     const adminUser = (await createUserRes.json()) as { id: string };
-    state.adminUserId = adminUser.id;
     const roleRes = await request.post(`${env.apiUrl}/rest/v1/user_roles`, {
       headers: serviceHeaders,
       data: { user_id: adminUser.id, role: "admin" },
@@ -420,6 +364,7 @@ test("M8 E2E : dépôt fichier → confirmation → e-mail capturé → lien →
     expect(accessMailsAfter[1]?.text).toContain("/auth/confirm?token_hash=");
     expect(accessMailsAfter[1]?.text).not.toContain("/api/downloads");
   } finally {
-    await cleanup();
+    // AUCUN nettoyage (global setup : `supabase db reset` avant chaque run).
+    // Aucun chemin de suppression sur audit_logs / payment_transitions.
   }
 });
