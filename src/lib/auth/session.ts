@@ -117,12 +117,14 @@ export async function recordAdminMfaSession(userId: string, sessionId: string | 
 /**
  * Fenêtre absolue : l'enregistrement a-t-il plus de `maxSeconds` ? défaut
  * true (échec fermé) si la ligne est absente, inconnue ou trop ancienne.
+ * Quand sessionId est indisponible (impossible d'identifier la session),
+ * on ne bloque pas sur la durée absolue : l'aal2 reste exigé par l'appelant.
  */
 export async function adminMfaSessionExpired(
   userId: string,
   sessionId: string | null,
 ): Promise<boolean> {
-  if (!sessionId) return true;
+  if (!sessionId) return false;
   const { data } = await createSupabaseAdminClient()
     .from("admin_mfa_sessions")
     .select("mfa_verified_at")

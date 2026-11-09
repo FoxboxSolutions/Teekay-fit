@@ -651,7 +651,7 @@
       "atreatHref": "./a-traiter",
       "leadsHref": "./leads",
       "clientsHref": "./clients",
-      "ordersHref": "./commandes",
+      "ordersHref": "./clients",
       "paymentsHref": "./paiements",
       "mfaHref": "./mfa",
       "sessionExpired": "Vérification MFA expirée : durée maximale de session atteinte. Reconnectez-vous.",
@@ -677,6 +677,11 @@
       "empty": "Aucun élément",
       "colAttempts": "Tentatives",
       "colReference": "Référence commande",
+      "resending": "Envoi…",
+      "resendButton": "Renvoyer",
+      "resendSent": "Renvoyé (repris en file d'attente)",
+      "resendAlready": "Déjà pris en charge",
+      "resendFailed": "Échec du renvoi",
       "notAdmin": "Accès réservé aux administrateurs.",
       "notSignedIn": "Session requise."
     },
@@ -727,6 +732,23 @@
       "empty": "Aucun lead",
       "leadUpdated": "Statut mis à jour.",
       "leadUpdatedError": "Échec de la mise à jour."
+    },
+    "clients": {
+      "metaTitle": "Clients",
+      "title": "Clients",
+      "noCustomers": "Aucun client",
+      "voirFiche": "Voir la fiche",
+      "ficheTitle": "Fiche client — {name}",
+      "commandes": "Commandes",
+      "aucuneCommande": "Aucune commande",
+      "parQ": "Questionnaire d'aptitude (PAR-Q)",
+      "parQNonRempli": "Aucun questionnaire d'aptitude renseigné.",
+      "parQRempli": "Questionnaire rempli",
+      "avisMedical": "Avis médical",
+      "avisMedicalOui": "Recommandé",
+      "avisMedicalNon": "Non requis",
+      "notAdmin": "Accès réservé aux administrateurs.",
+      "notSignedIn": "Session requise."
     }
   }
 }

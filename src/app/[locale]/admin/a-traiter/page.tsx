@@ -5,6 +5,7 @@ import { requireAdminAal2 } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { dayRangeAlgiers } from "@/lib/admin/period";
+import { OutboxResendButton } from "@/components/admin/outbox-resend-button";
 
 export const dynamic = "force-dynamic";
 
@@ -202,6 +203,7 @@ export default async function ATraiterPage({
               <li key={e.id} className="text-sm flex justify-between">
                 <span>{e.recipient}</span>
                 <span>{t("colAttempts")}{KV_SEP}{e.attempts}</span>
+                <OutboxResendButton id={e.id} />
               </li>
             ))}
           </ul>

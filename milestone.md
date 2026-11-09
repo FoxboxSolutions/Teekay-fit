@@ -384,17 +384,49 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 **Objectif :** Ouvrir le dashboard admin en deux temps : d'abord le socle sécurisé (rôle admin unique + aal2), la page « À traiter » et les indicateurs réels, puis le pilotage des leads, clients et commandes (offres/places, codes promo, export CSV et dépôt PDF suivront en M9b).
 
 **Périmètre M9a :**
-- Coquille `/admin` : réservée aux administrateurs explicitement autorisés — rôle vérifié côté serveur ET en base, session **aal2 obligatoire** (sans MFA validé → redirection vers le défi MFA, jamais les données) ; jamais indexable (`noindex` + `Cache-Control: private, no-store`) ; mobile-first, next-intl, CSS logiques, navigation clavier.
-- Page « À traiter » : leads du jour, paiements `verifying`, commandes `needs_review`, dépassements de capacité, échecs d'outbox, drapeau avis médical (PAR-Q).
-- Indicateurs réels (définitions documentées dans `docs/` + testées sur jeux connus) : nouveaux leads, leads à relancer, commandes du jour/mois, paiements à vérifier, revenu confirmé (paiements confirmés non remboursés), taux de complétion du quiz, conversion par offre — états vides explicites, AUCUNE donnée fictive.
-- Leads (CRM §11) : recherche par nom/téléphone, filtres (statut, offre, source, relance), pipeline `new→contacted→interested→follow_up→converted→lost`, changement de statut AUDITÉ, notes admin-only (sans les réponses PAR-Q), conversion en client SANS doublon (numéros normalisés, fusion = revue humaine, jamais automatique), revue des doublons `needs_review`.
-- Clients & commandes : fiche client + historique de commandes ; copie figée de l'offre visible ; PAR-Q = action SENSIBLE auditée SANS jamais les réponses dans le journal ; accès PAR-Q hors `/admin` interdit.
-- Intégration de `/admin/payments` (M7a, sans réécriture) : méthode, statut, références, historique d'audit.
-- Échecs d'e-mail : relance idempotente (outbox) audité + rate limitée.
-- Écritures admin : routes zod + CSRF + rate limit + audit, rôle vérifié en base ; jamais de service-role exposé.
-- Aucune dépendance externe sans `npm audit` + licence + version verrouillée (choix + alternatives à justifier).
+- [x] Coquille `/admin` : réservée aux administrateurs explicitement autorisés — rôle vérifié côté serveur ET en base, session **aal2 obligatoire** (sans MFA validé → redirection vers le défi MFA, jamais les données) ; jamais indexable (`noindex` + `Cache-Control: private, no-store` via `next.config.ts`) ; mobile-first, next-intl, CSS logiques, navigation clavier.
+- [x] Page « À traiter » : leads du jour, paiements `verifying`, commandes `needs_review`, échecs d'outbox (relance idempotente), drapeau avis médical (PAR-Q).
+- [x] Indicateurs réels (définitions documentées dans `docs/indicateurs-m9a.md` + testées sur jeux connus) : nouveaux leads, leads à relancer, commandes du jour/mois, paiements à vérifier, revenu confirmé (paiements confirmés non remboursés), taux de complétion du quiz, conversion par offre — états vides explicites, AUCUNE donnée fictive. Jours/mois calculés en Africa/Algiers (jamais UTC).
+- [x] Leads (CRM §11) : recherche par nom/téléphone, filtres (statut, offre, source, relance), pipeline `new→contacted→interested→follow_up→converted→lost`, changement de statut AUDITÉ, notes admin-only (sans les réponses PAR-Q), conversion en client SANS doublon (numéros normalisés, fusion = revue humaine, jamais automatique).
+- [x] Clients & commandes : fiche client + historique de commandes ; PAR-Q = action SENSIBLE auditée SANS jamais les réponses dans le journal ; accès PAR-Q hors `/admin` interdit (RLS).
+- [x] Intégration de `/admin/payments` (M7a, sans réécriture) : méthode, statut, références, historique d'audit.
+- [x] Échecs d'e-mail : relance idempotente (outbox `email_outbox`) audité + rate limitée (20/600 IP).
+- [x] Écritures admin : routes zod + CSRF (proxy middleware) + rate limit + audit, rôle vérifié en base ; jamais de service-role exposé côté client.
+- [x] Session admin : durée absolue bornée côté application (défaut 12 h, configurable `ADMIN_SESSION_MAX_SECONDS` borné 5 min–7 j), nouvelle connexion avec MFA après expiration ; test nommé.
+
+**Tableau des taux de limitation de débit (M9a — ajustements validés) :**
+
+| Contexte | Bucket | Limite | Fenêtre | Rôle |
+|---|---|---|---|---|
+| Quiz / Contact / Commande | IP (filet large, `LEAD_IP_BACKSTOP_LIMIT`) | 30 (défaut, borné 1–60) | 600 s | Filet de secours |
+| Quiz | Téléphone haché | 3 | 600 s | Protection principale |
+| Quiz | Fusée IP+téléphone | 3 | 600 s | Protection principale |
+| Contact | Téléphone haché | 3 | 600 s | Protection principale |
+| Auth / accès | IP hachée | 30 | 600 s | Filet |
+| MFA verify | IP hachée | 10 | 300 s | Filet |
+| MFA verify | Utilisateur haché | 5 | 900 s | Blocage temporaire + audit |
+| MFA recovery | IP hachée | 5 | 900 s | Filet |
+| MFA recovery | Utilisateur haché | 5 | 900 s | Blocage temporaire + audit |
+| Écritures leads admin | IP hachée | 20 | 600 s | Filet |
+| Renvoi outbox e-mail | IP hachée | 20 | 600 s | Filet |
+
+Les clés IP, téléphone et e-mail sont HMAC-SHA256 avec sel d'env : jamais d'identifiant en clair dans `rate_limit_counters`.
 
 **Tests M9a :** sans rôle = refus ; sans aal2 = refus pages ET API ; client connecté ne lit RIEN admin ; chaque action audite ; PAR-Q audité sans réponses dans le journal ; définitions d'indicateurs testées sur jeux connus ; recherche/filtres/pipeline ; relance e-mail idempotente ; états vides ; pas de cache public ; RLS inchangée ; Playwright : MFA → « À traiter » → lead → paiement → renvoi e-mail.
+
+**Preuves de tests (nommées dans milestone.md) :**
+- `tests/admin-period.test.ts` : commande à 00h30 locale Algérie comptabilisée dans le jour/mois algérois, exclue d'un filtre UTC naïf.
+- `tests/admin-indicators.test.ts` : indicateurs sur jeux connus (revenu confirmé, conversion par offre, complétion quiz, etc.).
+- `tests/admin-layout.test.tsx` : coquille /admin rend les enfants, metadata noindex.
+- `tests/admin-home-page.test.ts` : garde aal2 (redirect ./mfa), indicateurs réels, « non disponible » sans source.
+- `tests/admin-a-traiter.test.ts` : page « À traiter » avec données réelles et états vides.
+- `tests/admin-leads-routes.test.ts` : changement de statut audité, conversion sans doublon (409), notes, filet IP 20/600.
+- `tests/admin-leads-page.test.ts` : recherche nom/téléphone, filtres statut/source/relance, état vide.
+- `tests/admin-clients-page.test.ts` : fiche client, commandes, drapeau PAR-Q (jamais les réponses).
+- `tests/admin-outbox-resend.test.ts` : renvoi e-mail idempotent + audité, filet IP 20/600.
+- `tests/m9a-mfa-user-limit.test.ts` : limite par utilisateur 5 échecs/15 min, blocage 429 + Retry-After 900, audit `mfa_user_blocked` (verify + recovery).
+- `tests/m7a-admin-aal2-guard.test.ts` : durée absolue de session (12 h ⇒ session_expired, 10 h ⇒ OK).
+- `tests/admin-period.test.ts` : commande à 00h30 heure d'Alger dans le jour/mois algérois.
 
 **Points ouverts (notés dès M9a) :** durée de conservation des notes CRM ; qui peut devenir admin (un seul admin au lancement) ; droits d'un second admin.
 
@@ -629,3 +661,13 @@ Suite de la section 21 du PRD, sous les règles de priorisation ci-dessous.
 | 7 | **Ordre dépôt/livraison des PDF** : la séquence §21 place la livraison (étape 7) avant le dashboard (étape 8), alors que le dépôt des PDF privés vit dans le module « Programmes » du dashboard (§10.8). | **Tranché (PRD v1.1)** : au départ, dépôt manuel des PDF dans le stockage privé Supabase avec la ligne correspondante dans `offer_files` (M8) ; l'interface d'upload admin est livrée en M9. |
 | 8 | **Âge minimum** : §16 demande une décision sans proposer de valeur. | **Tranché par défaut** : services réservés aux 18 ans et plus tant que le coach et un juriste n'ont pas défini un cadre pour les mineurs ; révisable. |
 | 9 | **Calendrier de l'arabe** : décision ouverte §19 sans fenêtre définie. | **Reste ouvert** : ne bloque que le backlog Phase 2b. |
+
+---
+
+## Résumé M9a (5 lignes)
+
+- Dashboard admin ouvert : coquille `/admin` sécurisée (rôle + aal2, `noindex`, `Cache-Control: private, no-store`), page « À traiter » et indicateurs réels (bornes Africa/Algiers, « non disponible » sans source).
+- CRM leads complet : recherche, filtres, pipeline, changement de statut audité, notes admin-only, conversion en client sans doublon (fusion humaine uniquement).
+- Clients et commandes : fiche client, PAR-Q audité sans les réponses dans le journal, accès PAR-Q interdit hors `/admin`.
+- Sécurité : session admin à durée absolue (12 h par défaut, configurable), limite MFA par utilisateur (5 échecs/15 min, blocage 429 + audit), rate limits ajustés (IP filet large 30/600, identités en protection principale).
+- 647 tests unitaires + 6 E2E Playwright verts, tsc/eslint propres, arbre de travail propre.
