@@ -664,6 +664,21 @@
       "navPayments": "Paiements",
       "navMfa": "Double authentification",
       "navTitle": "Navigation"
+    },
+    "aTraiter": {
+      "metaTitle": "À traiter",
+      "title": "À traiter",
+      "intro": "Éléments nécessitant une attention de l'administrateur (données réelles, jamais d'estimation).",
+      "leadsToday": "Leads du jour",
+      "paymentsVerifying": "Paiements en attente de vérification",
+      "ordersReview": "Commandes à revoir",
+      "outboxFailed": "Échecs d'e-mails (renvoi idempotent)",
+      "medicalFlags": "Drapeau avis médical (PAR-Q)",
+      "empty": "Aucun élément",
+      "colAttempts": "Tentatives",
+      "colReference": "Référence commande",
+      "notAdmin": "Accès réservé aux administrateurs.",
+      "notSignedIn": "Session requise."
     }
   }
 }
