@@ -18,12 +18,27 @@ const fake = vi.hoisted(() => ({
   roles: [] as string[],
   totpFactors: [] as { factor_type: string; status: string }[],
   assuranceLevel: "aal1" as string | null,
+  sessionJwt: "x.y.z" as string, // JWT simulé (payload base64url)
+  /** Lignes admin_mfa_sessions : ["<session_id>", verifiedAt ISO] */
+  mfaSessions: [] as { user_id: string; session_id: string; mfa_verified_at: string }[],
 }));
+
+// Payload JWT réaliste (session_id GoTrue) encodé base64url.
+function payloadJwt(sessionId: string | null): string {
+  const payload = Buffer.from(
+    JSON.stringify({ sub: "u-1", ...(sessionId ? { session_id: sessionId } : {}) }),
+  )
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+  return `x.${payload}.z`;
+}
 
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseServerClient: async () => ({
     auth: {
       getUser: async () => ({ data: { user: fake.user }, error: null }),
+      getSession: async () => ({ data: { session: { access_token: fake.sessionJwt } } }),
       mfa: {
         listFactors: async () => ({ data: { all: fake.totpFactors }, error: null }),
         getAuthenticatorAssuranceLevel: async () => ({
@@ -47,6 +62,22 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
+vi.mock("@/lib/supabase/admin", () => ({
+  createSupabaseAdminClient: () => ({
+    // admin_mfa_sessions : unique lookup (select*.eq*.eq.maybeSingle).
+    from: (table: string) => {
+      if (table !== "admin_mfa_sessions") throw new Error(`table inattendue: ${table}`);
+      const chain: Record<string, unknown> = {};
+      chain.select = () => chain;
+      chain.eq = () => chain;
+      chain.maybeSingle = () =>
+        Promise.resolve({ data: fake.mfaSessions[0] ?? null, error: null });
+      chain.upsert = () => Promise.resolve({ data: null, error: null });
+      return chain;
+    },
+  }),
+}));
+
 type Module = typeof import("@/lib/auth/session");
 
 let requireAdminAal2: Module["requireAdminAal2"];
@@ -59,6 +90,8 @@ beforeEach(async () => {
   fake.roles = [];
   fake.totpFactors = [];
   fake.assuranceLevel = "aal1";
+  fake.sessionJwt = payloadJwt(null);
+  fake.mfaSessions = [];
 });
 
 describe("getAuthContext — aal2 lu depuis le niveau d'assurance courant", () => {
@@ -115,12 +148,67 @@ describe("requireAdminAal2 — aucune confirmation sans second facteur TOTP", ()
     fake.roles = ["admin"];
     fake.totpFactors = [{ factor_type: "totp", status: "verified" }];
     fake.assuranceLevel = "aal2";
+    fake.sessionJwt = payloadJwt("sess-1");
+    // Enregistrement MFA FRAIS (il y a 5 min) pour cette session.
+    fake.mfaSessions = [
+      {
+        user_id: "u-1",
+        session_id: "sess-1",
+        mfa_verified_at: new Date(Date.now() - 5 * 60_000).toISOString(),
+      },
+    ];
     const r = await requireAdminAal2();
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.auth.userId).toBe("u-1");
       expect(r.auth.aal2).toBe(true);
+      expect(r.auth.sessionId).toBe("sess-1");
     }
+  });
+
+  it("aucun enregistrement MFA pour cette session ⇒ session_expired (échec fermé)", async () => {
+    fake.user = { id: "u-1" };
+    fake.roles = ["admin"];
+    fake.totpFactors = [{ factor_type: "totp", status: "verified" }];
+    fake.assuranceLevel = "aal2";
+    fake.sessionJwt = payloadJwt("sess-1");
+    fake.mfaSessions = [];
+    const r = await requireAdminAal2();
+    expect(r).toEqual({ ok: false, status: 403, error: "session_expired" });
+  });
+
+  it("VIEILLE session aal2 (défi TOTP > durée absolue) ⇒ session_expired — nouvelle connexion avec MFA exigée", async () => {
+    fake.user = { id: "u-1" };
+    fake.roles = ["admin"];
+    fake.totpFactors = [{ factor_type: "totp", status: "verified" }];
+    fake.assuranceLevel = "aal2";
+    fake.sessionJwt = payloadJwt("sess-1");
+    fake.mfaSessions = [
+      {
+        user_id: "u-1",
+        session_id: "sess-1",
+        mfa_verified_at: new Date(Date.now() - 43_201_000).toISOString(), // > 12 h
+      },
+    ];
+    const r = await requireAdminAal2();
+    expect(r).toEqual({ ok: false, status: 403, error: "session_expired" });
+  });
+
+  it("VIEILLE session aal2 revalide DANS la durée absolue (10 h) ⇒ OK", async () => {
+    fake.user = { id: "u-1" };
+    fake.roles = ["admin"];
+    fake.totpFactors = [{ factor_type: "totp", status: "verified" }];
+    fake.assuranceLevel = "aal2";
+    fake.sessionJwt = payloadJwt("sess-1");
+    fake.mfaSessions = [
+      {
+        user_id: "u-1",
+        session_id: "sess-1",
+        mfa_verified_at: new Date(Date.now() - 10 * 3_600_000).toISOString(),
+      },
+    ];
+    const r = await requireAdminAal2();
+    expect(r.ok).toBe(true);
   });
 
   it("le garde existant requireAdmin garde sa sémantique M2 (facteur vérifié suffit pour l'activation)", async () => {
