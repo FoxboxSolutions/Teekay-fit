@@ -379,36 +379,50 @@ Paiement (M6, M7) et livraison des PDF sécurisés (M8) avant les fonctions de c
 
 ---
 
-### M9 — Dashboard coach/admin & journal d'audit
+### M9a — Dashboard admin, socle + à traiter + CRM + clients/commandes (1re moitié de M9)
 
-**Objectif :** Donner au coach un dashboard responsive (PWA) utilisable sur téléphone, alimenté uniquement par des données réelles, avec journal d'audit et rôles appliqués côté serveur.
+**Objectif :** Ouvrir le dashboard admin en deux temps : d'abord le socle sécurisé (rôle admin unique + aal2), la page « À traiter » et les indicateurs réels, puis le pilotage des leads, clients et commandes (offres/places, codes promo, export CSV et dépôt PDF suivront en M9b).
 
-**Checklist :**
-- [ ] Route `/admin` réservée aux administrateurs explicitement autorisés ; permissions appliquées côté serveur et en base, pas seulement dans l'interface
-- [ ] Vue d'ensemble : compteurs et revenus réels (revenu confirmé = paiements confirmés non remboursés)
-- [ ] Leads : pipeline CRM, relances, leads issus du quiz, notes à accès restreint
-- [ ] Clients : fiche et historique de commandes ; conversion en client sans doublon
-- [ ] Commandes : statut, copie figée de l'offre, livraison
-- [ ] Paiements : méthode, statut, références, vérification manuelle, historique d'audit
-- [ ] Offres : descriptions, prix, disponibilité, inclusions, conditions, places restantes (prix jamais codés en dur côté client)
-- [ ] Codes promo et parrainage (si décision tranchée — optionnel, non bloquant)
-- [ ] Programmes : dépôt des PDF privés et lien avec les droits d'accès
-- [ ] Paramètres : informations business, canaux de contact, instructions de paiement (BaridiMob), politiques
-- [ ] Journal d'audit : actions sensibles et décisions (vérifications de paiement, remboursements, changements de rôle, changements de prix, codes promo, accès aux fonctions sensibles)
-- [ ] Indicateurs : nouveaux leads, leads à relancer, taux de complétion du quiz, commandes du jour et du mois, commandes en attente de paiement, paiements à vérifier, conversion par offre — aucune donnée fictive en production, états vides indiqués clairement
-- [ ] Export CSV réservé aux utilisateurs autorisés
-- [ ] PWA installable, web responsive utilisable depuis un téléphone
-- [ ] Module séances (planning du présentiel) : reporté en Phase 2 (M13), conforme au §10.9
+**Périmètre M9a :**
+- Coquille `/admin` : réservée aux administrateurs explicitement autorisés — rôle vérifié côté serveur ET en base, session **aal2 obligatoire** (sans MFA validé → redirection vers le défi MFA, jamais les données) ; jamais indexable (`noindex` + `Cache-Control: private, no-store`) ; mobile-first, next-intl, CSS logiques, navigation clavier.
+- Page « À traiter » : leads du jour, paiements `verifying`, commandes `needs_review`, dépassements de capacité, échecs d'outbox, drapeau avis médical (PAR-Q).
+- Indicateurs réels (définitions documentées dans `docs/` + testées sur jeux connus) : nouveaux leads, leads à relancer, commandes du jour/mois, paiements à vérifier, revenu confirmé (paiements confirmés non remboursés), taux de complétion du quiz, conversion par offre — états vides explicites, AUCUNE donnée fictive.
+- Leads (CRM §11) : recherche par nom/téléphone, filtres (statut, offre, source, relance), pipeline `new→contacted→interested→follow_up→converted→lost`, changement de statut AUDITÉ, notes admin-only (sans les réponses PAR-Q), conversion en client SANS doublon (numéros normalisés, fusion = revue humaine, jamais automatique), revue des doublons `needs_review`.
+- Clients & commandes : fiche client + historique de commandes ; copie figée de l'offre visible ; PAR-Q = action SENSIBLE auditée SANS jamais les réponses dans le journal ; accès PAR-Q hors `/admin` interdit.
+- Intégration de `/admin/payments` (M7a, sans réécriture) : méthode, statut, références, historique d'audit.
+- Échecs d'e-mail : relance idempotente (outbox) audité + rate limitée.
+- Écritures admin : routes zod + CSRF + rate limit + audit, rôle vérifié en base ; jamais de service-role exposé.
+- Aucune dépendance externe sans `npm audit` + licence + version verrouillée (choix + alternatives à justifier).
+
+**Tests M9a :** sans rôle = refus ; sans aal2 = refus pages ET API ; client connecté ne lit RIEN admin ; chaque action audite ; PAR-Q audité sans réponses dans le journal ; définitions d'indicateurs testées sur jeux connus ; recherche/filtres/pipeline ; relance e-mail idempotente ; états vides ; pas de cache public ; RLS inchangée ; Playwright : MFA → « À traiter » → lead → paiement → renvoi e-mail.
+
+**Points ouverts (notés dès M9a) :** durée de conservation des notes CRM ; qui peut devenir admin (un seul admin au lancement) ; droits d'un second admin.
+
+---
+
+### M9b — Offres, places, codes promo, programmes, paramètres, audit, export, PWA (2e moitié de M9)
+
+**Objectif :** Compléter le dashboard : gestion des offres et places, codes promo (si tranchés), dépôt des PDF depuis l'interface, paramètres business, journal d'audit consultable, export CSV et installation PWA.
+
+**Périmètre M9b (checklist héritée de M9) :**
+- Offres : descriptions, prix, disponibilité, inclusions, conditions, places restantes (prix jamais codés en dur côté client) ; chaque changement de prix audité.
+- Codes promo et parrainage (si décision tranchée — optionnel, non bloquant, audités).
+- Programmes : dépôt des PDF privés et lien avec les droits d'accès (reprend la procédure documentée M8).
+- Paramètres : informations business, canaux de contact, instructions de paiement (BaridiMob), politiques.
+- Journal d'audit consultable : vérifications de paiement, remboursements, changements de rôle/prix, codes promo, accès aux fonctions sensibles.
+- Export CSV réservé aux utilisateurs autorisés.
+- PWA installable, web responsive utilisable depuis un téléphone (manifest + service worker, audité comme écriture sensible si installable hors dev).
+
+**Critères d'acceptation (§18 — Sécurité et administration, communs M9a/M9b) :** les pages et API admin rejettent les utilisateurs non autorisés ; personne ne peut élever son propre rôle ; tableaux de bord alimentés uniquement par des données réelles ; actions critiques dans le journal d'audit.
 
 **Livrables :** dashboard complet, journal d'audit, interface de dépôt des programmes, indicateurs réels.
 
-**Critères d'acceptation (§18 — Sécurité et administration) :** les pages et API admin rejettent les utilisateurs non autorisés ; personne ne peut élever son propre rôle ; tableaux de bord alimentés uniquement par des données réelles ; actions critiques dans le journal d'audit.
-
-**Dépendances :** M2, M5 (leads), M6 (commandes), M7 (paiements), M8 (livraison).
+**Dépendances :** M2, M5 (leads), M6 (commandes), M7 (paiements), M8 (livraison), M9a.
 
 **Risques principaux (§20) :** fuite des données clients → RLS et autorisations serveur ; élévation de rôle → permissions en base ; métriques fictives → interdiction explicite (§10) ; notes CRM mal restreintes.
 
 ---
+
 
 ### M10 — Notifications, analytics, SEO & légal
 
