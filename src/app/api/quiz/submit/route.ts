@@ -7,6 +7,8 @@ import { recommendOffer } from "@/lib/quiz/recommend";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { CONSENT_VERSIONS, fakeResultToken, newResultToken } from "@/lib/leads/capture";
 import { leadFormGuard } from "@/lib/leads/guard";
+import { ipRateLimitKey } from "@/lib/security/rate-limit";
+import { fusedRateLimitKey, phoneRateLimitKey } from "@/lib/security/rate-keys";
 import { logEvent } from "@/lib/observability/logger";
 
 const quizSubmitSchema = z.strictObject({
@@ -35,12 +37,42 @@ export async function POST(request: Request) {
   }
   const raw = body as Record<string, unknown>;
 
+  // Garde anti-abus : IP 5/600 PUIS identités (correction avant M9) —
+  // téléphone normalisé haché 3/600 et clé fusée IP+téléphone 3/600. Le
+  // seuil IP reste le premier check croisé (pin anti-énumération : le
+  // MÊME numéro peut être soumis 2× ; 6 requêtes distinctes depuis une
+  // même IP restent stoppées à la 6e). Contact/compteurs : jamais le
+  // numéro ni l'IP en clair.
+  const candidatePhone =
+    typeof raw.phone === "string" ? normalizePhoneE164(raw.phone) : null;
+  const identities = candidatePhone
+    ? [
+        {
+          key: phoneRateLimitKey(candidatePhone, "lead_quiz_phone"),
+          limit: 3,
+          windowSeconds: 600,
+        },
+        {
+          key: fusedRateLimitKey(
+            [
+              ipRateLimitKey(request.headers, "lead_quiz_ip"),
+              phoneRateLimitKey(candidatePhone, "lead_quiz_phone"),
+            ],
+            "lead_quiz_ip_fused",
+          ),
+          limit: 3,
+          windowSeconds: 600,
+        },
+      ]
+    : undefined;
+
   const guard = await leadFormGuard(request, {
     bucketPrefix: "lead_quiz_ip",
     limit: 5,
     windowSeconds: 600,
     honeypot: raw.website,
     turnstileToken: raw.turnstileToken,
+    identities,
   });
   if (guard === "honeypot") {
     logEvent({ level: "info", event: "quiz_submit_honeypot" });
@@ -48,7 +80,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, resultToken: fakeResultToken() });
   }
   if (guard === "rate_limited") {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
   }
   if (guard === "captcha_failed") {
     return NextResponse.json({ error: "captcha_requis" }, { status: 403 });

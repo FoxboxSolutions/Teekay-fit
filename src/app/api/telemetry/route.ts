@@ -19,7 +19,14 @@ export async function POST(request: Request) {
     60,
     300,
   );
-  if (!allowed) return NextResponse.json({ ok: true });
+  if (!allowed) {
+    // Toute réponse reste { ok: true } (réponse neutre, pas d'oracle) ; on
+    // signale tout de même le délai aux honnêtes clients (correction M9).
+    return NextResponse.json(
+      { ok: true },
+      { headers: { "Retry-After": "300" } },
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const parsed = telemetrySchema.safeParse(body);

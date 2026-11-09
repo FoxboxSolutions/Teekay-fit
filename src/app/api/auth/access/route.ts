@@ -38,7 +38,12 @@ export async function POST(request: Request) {
     10,
     600,
   );
-  if (!allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const parsed = accessSchema.safeParse(body);

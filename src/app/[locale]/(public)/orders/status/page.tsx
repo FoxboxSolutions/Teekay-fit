@@ -74,9 +74,10 @@ export default async function OrderStatusPage({
   setRequestLocale(locale);
   const t = await getTranslations("order.status");
 
-  // Limitation de débit en lecture (30 consultations / 10 min par IP hachée).
+  // Limitation de débit en lecture — élargie 60/600 (correction avant M9,
+  // relay/NAT légitimes) : la protection fine reste le jeton de statut.
   const requestHeaders = await headers();
-  const allowed = await checkRateLimit(ipRateLimitKey(requestHeaders, "order_status_ip"), 30, 600);
+  const allowed = await checkRateLimit(ipRateLimitKey(requestHeaders, "order_status_ip"), 60, 600);
 
   const result =
     allowed && token && isValidOrderStatusTokenFormat(token)

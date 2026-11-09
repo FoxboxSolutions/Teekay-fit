@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { CONSENT_VERSIONS } from "@/lib/leads/capture";
 import { leadFormGuard } from "@/lib/leads/guard";
+import { phoneRateLimitKey } from "@/lib/security/rate-keys";
 import { logEvent } from "@/lib/observability/logger";
 
 const contactSchema = z.strictObject({
@@ -31,19 +32,36 @@ export async function POST(request: Request) {
   }
   const raw = body as Record<string, unknown>;
 
+  // Garde anti-abus : IP 3/600 PUIS téléphone normalisé HACHÉ 3/600
+  // (correction avant M9 — strict sur les écritures ; le numéro en clair
+  // n'atteint jamais les compteurs).
+  const candidatePhone =
+    typeof raw.phone === "string" ? normalizePhoneE164(raw.phone) : null;
   const guard = await leadFormGuard(request, {
     bucketPrefix: "lead_contact_ip",
     limit: 3,
     windowSeconds: 600,
     honeypot: raw.website,
     turnstileToken: raw.turnstileToken,
+    identities: candidatePhone
+      ? [
+          {
+            key: phoneRateLimitKey(candidatePhone, "lead_contact_phone"),
+            limit: 3,
+            windowSeconds: 600,
+          },
+        ]
+      : undefined,
   });
   if (guard === "honeypot") {
     logEvent({ level: "info", event: "contact_honeypot" });
     return NextResponse.json({ ok: true });
   }
   if (guard === "rate_limited") {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
   }
   if (guard === "captcha_failed") {
     return NextResponse.json({ error: "captcha_requis" }, { status: 403 });

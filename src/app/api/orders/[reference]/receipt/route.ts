@@ -25,8 +25,15 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ reference: string }> },
 ) {
-  const allowed = await checkRateLimit(ipRateLimitKey(request.headers, "order_receipt_ip"), 20, 600);
-  if (!allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  // Lecture élargie 60/600 (correction avant M9 — relay légitime/NAT) : la
+  // protection fine reste le jeton de statut à capacité secrète.
+  const allowed = await checkRateLimit(ipRateLimitKey(request.headers, "order_receipt_ip"), 60, 600);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
+  }
 
   const { reference } = await params;
   const url = new URL(request.url);

@@ -4,7 +4,8 @@ import { z } from "zod";
 import { createHash } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { leadFormGuard } from "@/lib/leads/guard";
-import { checkRateLimit, emailRateLimitKey } from "@/lib/security/rate-limit";
+import { checkRateLimit, emailRateLimitKey, ipRateLimitKey } from "@/lib/security/rate-limit";
+import { fusedRateLimitKey } from "@/lib/security/rate-keys";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { createStatusToken } from "@/lib/payments/status-token";
 import { getPaymentProvider } from "@/lib/payments/loader";
@@ -98,12 +99,37 @@ export async function POST(request: Request) {
   const raw = body as Record<string, unknown>;
 
   // Garde anti-abus commune (honeypot + rate limit IP + Turnstile).
+  // IP 30/600 (correction avant M9 : élargie pour un utilisateur légitime
+  // derrière une IP partagée — bureau/NAT) ; en complément, clé FUSÉE
+  // IP+e-mail 5/600 stricte dès la garde : l'e-mail plausible du corps brut
+  // (pré-zod) est haché — la même requête répétée depuis la même IP avec le
+  // même e-mail est stoppée tôt. Aucun identifiant en clair dans les compteurs.
+  const candidateEmail =
+    typeof raw.email === "string"
+      ? raw.email.trim().toLowerCase().slice(0, 254)
+      : "";
+  const emailPlausible = /^[^\s@]{1,64}@[^\s@.]+(\.[^\s@.]+)+$/.test(candidateEmail);
   const guard = await leadFormGuard(request, {
     bucketPrefix: "order_ip",
-    limit: 10,
+    limit: 30,
     windowSeconds: 600,
     honeypot: raw.website,
     turnstileToken: raw.turnstileToken,
+    identities: emailPlausible
+      ? [
+          {
+            key: fusedRateLimitKey(
+              [
+                ipRateLimitKey(request.headers, "order_ip"),
+                emailRateLimitKey(candidateEmail, "order_email"),
+              ],
+              "order_ip_fused",
+            ),
+            limit: 5,
+            windowSeconds: 600,
+          },
+        ]
+      : [],
   });
   if (guard === "honeypot") {
     // Forme identique à un succès (aucune écriture) — indétectable.
@@ -111,7 +137,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, reference: "TKF-0000-FAKE" });
   }
   if (guard === "rate_limited") {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
   }
   if (guard === "captcha_failed") {
     return NextResponse.json({ error: "captcha_requis" }, { status: 403 });
@@ -133,7 +162,10 @@ export async function POST(request: Request) {
   // salé du mail entre en base (jamais l'e-mail en clair dans les compteurs).
   const emailOk = await checkRateLimit(emailRateLimitKey(input.email, "order_email"), 5, 600);
   if (!emailOk) {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
   }
 
   // Fournisseur via la couche abstraite (garde fake incluse) ; null ⇒ manuel.

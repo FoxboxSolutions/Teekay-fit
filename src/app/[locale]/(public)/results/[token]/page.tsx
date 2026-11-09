@@ -40,11 +40,12 @@ export default async function ResultPage({
   setRequestLocale(locale);
   const t = await getTranslations("results");
 
-  // Limitation de débit en lecture (30 consultations / 10 min par IP hachée).
+  // Limitation de débit en lecture — élargie 60/600 (correction avant M9,
+  // relay/NAT légitimes) : la protection fine reste le jeton de résultat.
   const requestHeaders = await headers();
   const allowed = await checkRateLimit(
     ipRateLimitKey(requestHeaders, "quiz_result_ip"),
-    30,
+    60,
     600,
   );
 

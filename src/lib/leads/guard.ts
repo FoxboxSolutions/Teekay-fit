@@ -6,7 +6,10 @@ export type LeadFormGuardOutcome = "ok" | "honeypot" | "rate_limited" | "captcha
 
 /**
  * Garde commune des formulaires publics de capture (M5, PRD §15) :
- * honeypot → limitation de débit par IP hachée → Turnstile (échec fermé).
+ * honeypot → limitation de débit par IP hachée → identités (téléphone
+ * haché, clés fusées IP+identité, correction avant M9) → Turnstile (échec
+ * fermé). Les identités sont SEQUENTIELLES et postérieures au check IP :
+ * celui-ci reste le premier seuil croisé (pin des tests de rate limit).
  *
  * À appeler juste après la lecture du corps JSON, avant la validation zod.
  */
@@ -18,6 +21,8 @@ export async function leadFormGuard(
     windowSeconds: number;
     honeypot: unknown;
     turnstileToken: unknown;
+    /** Identités supplémentaires — clés DÉJÀ hachées (rate-keys.ts). */
+    identities?: ReadonlyArray<{ key: string; limit: number; windowSeconds: number }>;
   },
 ): Promise<LeadFormGuardOutcome> {
   // 1. Honeypot : un humain ne remplit jamais ce champ. La route répond comme
@@ -33,6 +38,17 @@ export async function leadFormGuard(
     options.windowSeconds,
   );
   if (!allowed) return "rate_limited";
+
+  for (const identity of options.identities ?? []) {
+    // 2bis. Identité (téléphone haché / clé fusée IP+identité — correction
+    // avant M9 : strict sur les écritures, derrière le seuil IP élargi).
+    const identityAllowed = await checkRateLimit(
+      identity.key,
+      identity.limit,
+      identity.windowSeconds,
+    );
+    if (!identityAllowed) return "rate_limited";
+  }
 
   // 3. Turnstile : échec fermé (jeton/secret absent ou siteverify injoignable).
   const token = typeof options.turnstileToken === "string" ? options.turnstileToken : null;

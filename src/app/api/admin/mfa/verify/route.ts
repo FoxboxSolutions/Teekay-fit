@@ -24,7 +24,10 @@ export async function POST(request: Request) {
 
   const limited = await checkRateLimit(ipRateLimitKey(request.headers, "mfa_verify_ip"), 10, 300);
   if (!limited) {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "300" } },
+    );
   }
 
   const supabase = await createSupabaseServerClient();

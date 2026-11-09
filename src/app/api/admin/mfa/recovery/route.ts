@@ -29,7 +29,10 @@ export async function POST(request: Request) {
 
   const limited = await checkRateLimit(ipRateLimitKey(request.headers, "mfa_recovery_ip"), 5, 900);
   if (!limited) {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "900" } },
+    );
   }
 
   const consumed = await consumeRecoveryCode(guard.auth.userId, parsed.data.code);

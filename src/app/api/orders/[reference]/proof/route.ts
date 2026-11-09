@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
+import { fusedRateLimitKey } from "@/lib/security/rate-keys";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hashStatusToken } from "@/lib/payments/status-token";
 import {
@@ -44,12 +45,32 @@ export async function POST(
   }
   if (!form) return NextResponse.json({ error: "requête_invalide" }, { status: 400 });
 
-  const allowed = await checkRateLimit(
-    ipRateLimitKey(request.headers, "order_proof_ip"),
+  // Rate limit de WRITE : IP 30/600 (correction avant M9 : élargie NAT)
+  // PUIS clé fusée IP+référence 10/600 — le même couple (IP, commande)
+  // reste strict. La référence est une donnée publique ; elle est tout de
+  // même hachée (jamais de valeur brute dans les compteurs).
+  const ipKey = ipRateLimitKey(request.headers, "order_proof_ip");
+  const allowed = await checkRateLimit(ipKey, 30, 600);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
+  }
+  const byReference = await checkRateLimit(
+    fusedRateLimitKey(
+      [ipKey, `order_proof_ref:${reference.trim().toLowerCase().slice(0, 64)}`],
+      "order_proof_ip_fused",
+    ),
     10,
     600,
   );
-  if (!allowed) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  if (!byReference) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "600" } },
+    );
+  }
 
   const statusToken = String(form.get("statusToken") ?? "");
   const txn = String(form.get("txn") ?? "").trim();

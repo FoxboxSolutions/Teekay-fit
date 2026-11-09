@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
+import { phoneRateLimitKey } from "@/lib/security/rate-keys";
 
 const phoneSchema = z.object({
   // Format international : +213... 
@@ -26,10 +27,15 @@ export async function POST(request: Request) {
 
   const [byIp, byPhone] = await Promise.all([
     checkRateLimit(ipRateLimitKey(request.headers, "auth_phone_ip"), 10, 900),
-    checkRateLimit(`auth_phone_num:${phone}`, 5, 900),
+    // Corrigé (avant M9) : le téléphone était en CLAIR dans les compteurs ;
+    // désormais hashé HMAC avec sel d'env — le numéro entre toujours haché.
+    checkRateLimit(phoneRateLimitKey(phone, "auth_phone_num"), 5, 900),
   ]);
   if (!byIp || !byPhone) {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "900" } },
+    );
   }
 
   const supabase = await createSupabaseServerClient();

@@ -91,8 +91,10 @@ async function countTodayDownloads(userId: string, entitlementId: string): Promi
   return count ?? 0;
 }
 
-function jsonError(status: number, error: string): NextResponse {
-  return NextResponse.json({ error }, { status });
+/** Erreur JSON uniforme ; `retryAfter` (secondes) ⇒ en-tête Retry-After (M9). */
+function jsonError(status: number, error: string, retryAfter?: number): NextResponse {
+  if (!retryAfter) return NextResponse.json({ error }, { status });
+  return NextResponse.json({ error }, { status, headers: { "Retry-After": String(retryAfter) } });
 }
 
 export async function GET(
@@ -109,7 +111,7 @@ export async function GET(
     RATE_LIMIT_PER_HOUR,
     3600,
   );
-  if (!limited) return jsonError(429, "rate_limited");
+  if (!limited) return jsonError(429, "rate_limited", 3600);
 
   const { entitlementId } = await params;
   const fileId = new URL(request.url).searchParams.get("file");
@@ -123,10 +125,18 @@ export async function GET(
   const file = grant.files[0];
   if (!file) return jsonError(404, "not_found");
 
-  // 4) Plafond quotidien PAR DROIT (configurable en base).
+  // 4) Plafond quotidien PAR DROIT (configurable en base) — Retry-After
+  //    jusqu'au repli UTC suivant (le compteur se réinitialise à minuit UTC).
   const dailyLimit = await getDownloadsDailyLimit();
   const used = await countTodayDownloads(auth.userId, grant.entitlementId);
-  if (used >= dailyLimit) return jsonError(429, "limite_atteinte");
+  if (used >= dailyLimit) {
+    const nextMidnight = Date.UTC(
+      new Date().getUTCFullYear(),
+      new Date().getUTCMonth(),
+      new Date().getUTCDate() + 1,
+    );
+    return jsonError(429, "limite_atteinte", Math.max(1, Math.ceil((nextMidnight - Date.now()) / 1000)));
+  }
 
   const budgetStart = Date.now();
   const remaining = () => TOTAL_BUDGET_MS - (Date.now() - budgetStart);

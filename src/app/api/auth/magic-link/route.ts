@@ -24,11 +24,16 @@ export async function POST(request: Request) {
   const { email } = parsed.data;
 
   const [byIp, byEmail] = await Promise.all([
-    checkRateLimit(ipRateLimitKey(request.headers, "auth_magic_ip"), 10, 900),
+    // IP élargie 30/900 (correction avant M9 : NAT/bureau) — exactement
+    // DEUX buckets ici (pin de test) ; le e-mail reste le seuil fin 5/900.
+    checkRateLimit(ipRateLimitKey(request.headers, "auth_magic_ip"), 30, 900),
     checkRateLimit(emailRateLimitKey(email, "auth_magic_email"), 5, 900),
   ]);
   if (!byIp || !byEmail) {
-    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "Retry-After": "900" } },
+    );
   }
 
   const supabase = await createSupabaseServerClient();

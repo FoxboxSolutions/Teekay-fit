@@ -42,10 +42,10 @@ export async function POST(request: Request) {
   // Anti-abus : la consommation est un acte sensible (usage unique).
   const limited = await checkRateLimit(ipRateLimitKey(request.headers, "auth_confirm_ip"), 20, 900);
   if (!limited) {
-    return NextResponse.redirect(
-      new URL(`/fr/auth/confirm?error=1`, request.url),
-      303,
-    );
+    return NextResponse.redirect(new URL(`/fr/auth/confirm?error=1`, request.url), {
+      status: 303,
+      headers: { "Retry-After": "900" },
+    });
   }
 
   const form = await request.formData().catch(() => null);
