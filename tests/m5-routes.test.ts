@@ -187,25 +187,43 @@ describe("POST /api/quiz/submit", () => {
     expect(leads).toHaveLength(1);
   });
 
-  it("rate limit : 6e soumission depuis la même IP ⇒ 429", async () => {
+  it("anti-spam MÊME téléphone : 4ᵉ soumission même IP ⇒ 429 (téléphone = protection principale)", async () => {
     mockSiteverify({ success: true });
-    const ip = "198.51.100.200";
-    const post = (body: unknown) =>
+    const ip = "198.51.100.210";
+    const phone = dzPhone("9"); // numéro UNIQUE : tout le spam sur lui
+    const post = () =>
       new Request("http://localhost/api/quiz/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-forwarded-for": ip },
-        body: JSON.stringify(body),
+        body: JSON.stringify(quizBody(phone)),
       });
 
     const statuses: number[] = [];
-    for (let i = 0; i < 6; i += 1) {
-      const phone = dzPhone(`9${i}`.slice(-1));
-      if (i < 5) trackedPhones.push(phone);
-      const res = await quizRoute.POST(post(quizBody(phone)));
+    for (let i = 0; i < 4; i += 1) {
+      if (i < 3) trackedPhones.push(phone);
+      const res = await quizRoute.POST(post());
       statuses.push(res.status);
     }
-    expect(statuses.slice(0, 5)).toEqual([200, 200, 200, 200, 200]);
-    expect(statuses[5]).toBe(429);
+    expect(statuses.slice(0, 3)).toEqual([200, 200, 200]);
+    expect(statuses[3]).toBe(429);
+  });
+
+  it("filet IP LARGE : 6 téléphones DISTINCTS depuis la même IP passent (NAT/bureau — M9a)", async () => {
+    mockSiteverify({ success: true });
+    const ip = "198.51.100.211";
+    const post = (phone: string) =>
+      new Request("http://localhost/api/quiz/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-forwarded-for": ip },
+        body: JSON.stringify(quizBody(phone)),
+      });
+
+    for (let i = 0; i < 6; i += 1) {
+      const phone = dzPhone(`${i}`);
+      trackedPhones.push(phone);
+      const res = await quizRoute.POST(post(phone));
+      expect(res.status, `soumission ${i + 1} (téléphone distinct depuis la même IP)`).toBe(200);
+    }
   });
 });
 

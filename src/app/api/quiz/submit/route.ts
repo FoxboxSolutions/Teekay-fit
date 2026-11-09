@@ -6,7 +6,7 @@ import { quizAnswersSchema } from "@/lib/quiz/schema";
 import { recommendOffer } from "@/lib/quiz/recommend";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { CONSENT_VERSIONS, fakeResultToken, newResultToken } from "@/lib/leads/capture";
-import { leadFormGuard } from "@/lib/leads/guard";
+import { leadFormGuard, leadIpBackstopLimit } from "@/lib/leads/guard";
 import { ipRateLimitKey } from "@/lib/security/rate-limit";
 import { fusedRateLimitKey, phoneRateLimitKey } from "@/lib/security/rate-keys";
 import { logEvent } from "@/lib/observability/logger";
@@ -37,12 +37,11 @@ export async function POST(request: Request) {
   }
   const raw = body as Record<string, unknown>;
 
-  // Garde anti-abus : IP 5/600 PUIS identités (correction avant M9) —
-  // téléphone normalisé haché 3/600 et clé fusée IP+téléphone 3/600. Le
-  // seuil IP reste le premier check croisé (pin anti-énumération : le
-  // MÊME numéro peut être soumis 2× ; 6 requêtes distinctes depuis une
-  // même IP restent stoppées à la 6e). Contact/compteurs : jamais le
-  // numéro ni l'IP en clair.
+  // Garde anti-abus : identités D'ABORD (téléphone normalisé haché 3/600,
+  // fusée IP+téléphone 3/600 — protection principale), PUIS filet IP LARGE
+  // configurable 30/600 (M9a — ajustement : un utilisateur légitime derrière
+  // une IP partagée / NAT passe ; le spam même-IP MÊME-TÉLÉPHONE est bloqué
+  // par le téléphone). Contact/compteurs : jamais le numéro ni l'IP en clair.
   const candidatePhone =
     typeof raw.phone === "string" ? normalizePhoneE164(raw.phone) : null;
   const identities = candidatePhone
@@ -68,7 +67,7 @@ export async function POST(request: Request) {
 
   const guard = await leadFormGuard(request, {
     bucketPrefix: "lead_quiz_ip",
-    limit: 5,
+    limit: leadIpBackstopLimit(),
     windowSeconds: 600,
     honeypot: raw.website,
     turnstileToken: raw.turnstileToken,

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { leadFormGuard } from "@/lib/leads/guard";
+import { leadFormGuard, leadIpBackstopLimit } from "@/lib/leads/guard";
 import { checkRateLimit, emailRateLimitKey, ipRateLimitKey } from "@/lib/security/rate-limit";
 import { fusedRateLimitKey } from "@/lib/security/rate-keys";
 import { normalizePhoneE164 } from "@/lib/phone";
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
   const emailPlausible = /^[^\s@]{1,64}@[^\s@.]+(\.[^\s@.]+)+$/.test(candidateEmail);
   const guard = await leadFormGuard(request, {
     bucketPrefix: "order_ip",
-    limit: 30,
+    limit: leadIpBackstopLimit(),
     windowSeconds: 600,
     honeypot: raw.website,
     turnstileToken: raw.turnstileToken,

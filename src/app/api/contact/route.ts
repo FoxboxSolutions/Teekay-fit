@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { CONSENT_VERSIONS } from "@/lib/leads/capture";
-import { leadFormGuard } from "@/lib/leads/guard";
+import { leadFormGuard, leadIpBackstopLimit } from "@/lib/leads/guard";
 import { phoneRateLimitKey } from "@/lib/security/rate-keys";
 import { logEvent } from "@/lib/observability/logger";
 
@@ -32,14 +32,14 @@ export async function POST(request: Request) {
   }
   const raw = body as Record<string, unknown>;
 
-  // Garde anti-abus : IP 3/600 PUIS téléphone normalisé HACHÉ 3/600
-  // (correction avant M9 — strict sur les écritures ; le numéro en clair
-  // n'atteint jamais les compteurs).
+  // Garde anti-abus : identité (téléphone normalisé HACHÉ 3/600 — protection
+  // principale) PUIS filet IP LARGE configurable 30/600 (M9a — ajustement).
+  // Le numéro en clair n'atteint jamais les compteurs.
   const candidatePhone =
     typeof raw.phone === "string" ? normalizePhoneE164(raw.phone) : null;
   const guard = await leadFormGuard(request, {
     bucketPrefix: "lead_contact_ip",
-    limit: 3,
+    limit: leadIpBackstopLimit(),
     windowSeconds: 600,
     honeypot: raw.website,
     turnstileToken: raw.turnstileToken,

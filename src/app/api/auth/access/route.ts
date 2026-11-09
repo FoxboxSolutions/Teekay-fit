@@ -35,7 +35,7 @@ const accessSchema = z.object({
 export async function POST(request: Request) {
   const allowed = await checkRateLimit(
     ipRateLimitKey(request.headers, "auth_access_ip"),
-    10,
+    30,
     600,
   );
   if (!allowed) {

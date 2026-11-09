@@ -5,11 +5,25 @@ import { verifyTurnstile } from "@/lib/security/turnstile";
 export type LeadFormGuardOutcome = "ok" | "honeypot" | "rate_limited" | "captcha_failed";
 
 /**
+ * Filet IP des formulaires publics (M9a — ajustement) : LARGE et
+ * configurable (`LEAD_IP_BACKSTOP_LIMIT`, borné 1–60, défaut 30/600 s).
+ * La protection PRINCIPALE est la clé identitaire (téléphone haché,
+ * e-mail haché, fusée IP+identité) — un utilisateur légitime derrière une
+ * IP partagée (bureau / NAT) reste sous le filet.
+ */
+export function leadIpBackstopLimit(): number {
+  const raw = process.env.LEAD_IP_BACKSTOP_LIMIT;
+  const value = raw ? Number.parseInt(raw, 10) : 30;
+  if (!Number.isFinite(value)) return 30;
+  return Math.min(Math.max(value, 1), 60);
+}
+
+/**
  * Garde commune des formulaires publics de capture (M5, PRD §15) :
- * honeypot → limitation de débit par IP hachée → identités (téléphone
- * haché, clés fusées IP+identité, correction avant M9) → Turnstile (échec
- * fermé). Les identités sont SEQUENTIELLES et postérieures au check IP :
- * celui-ci reste le premier seuil croisé (pin des tests de rate limit).
+ * honeypot → identités (téléphone haché / e-mail haché / clé fusée
+ * IP+identité — protection PRINCIPALE, M9a) → filet IP LARGE configurable
+ * → Turnstile (échec fermé). Ordre séquentiel : le seuil identitaire est
+ * le premier seuil croisé sur les écritures.
  *
  * À appeler juste après la lecture du corps JSON, avant la validation zod.
  */
@@ -31,17 +45,10 @@ export async function leadFormGuard(
     return "honeypot";
   }
 
-  // 2. Limitation de débit (IP hachée avec sel d'env — jamais d'IP en clair).
-  const allowed = await checkRateLimit(
-    ipRateLimitKey(request.headers, options.bucketPrefix),
-    options.limit,
-    options.windowSeconds,
-  );
-  if (!allowed) return "rate_limited";
-
+  // 2. Identités (protection PRINCIPALE — clés DÉJÀ hachées, rate-keys.ts) :
+  //    téléphone normalisé, e-mail haché, clé fusée IP+identité. Strict sur
+  //    les écritures ; vérifiées AVANT le filet IP.
   for (const identity of options.identities ?? []) {
-    // 2bis. Identité (téléphone haché / clé fusée IP+identité — correction
-    // avant M9 : strict sur les écritures, derrière le seuil IP élargi).
     const identityAllowed = await checkRateLimit(
       identity.key,
       identity.limit,
@@ -50,7 +57,16 @@ export async function leadFormGuard(
     if (!identityAllowed) return "rate_limited";
   }
 
-  // 3. Turnstile : échec fermé (jeton/secret absent ou siteverify injoignable).
+  // 3. Filet IP (hachée avec sel d'env — jamais d'IP en clair) : large et
+  //    configurable — un utilisateur légitime derrière un NAT passe.
+  const allowed = await checkRateLimit(
+    ipRateLimitKey(request.headers, options.bucketPrefix),
+    options.limit,
+    options.windowSeconds,
+  );
+  if (!allowed) return "rate_limited";
+
+  // 4. Turnstile : échec fermé (jeton/secret absent ou siteverify injoignable).
   const token = typeof options.turnstileToken === "string" ? options.turnstileToken : null;
   const captchaOk = await verifyTurnstile(token, clientIp(request.headers));
   return captchaOk ? "ok" : "captcha_failed";
