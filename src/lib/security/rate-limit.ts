@@ -37,6 +37,36 @@ export function clientIp(headers: Headers): string {
   return headers.get("x-real-ip") ?? "unknown";
 }
 
+/**
+ * LECTURE SANS INCRÉMENT du compteur d'un bucket (M9a — ajustement) :
+ * sémantique identique à check_rate_limit (fenêtre glissante), mais
+ * SURVEILLANCE seule. Sert à refuser un compte déjà « bloqué
+ * temporairement » (MFA : 5 échecs / 15 min) SANS consommer une tentative
+ * légitime — les échecs seuls s'incrémentent via check_rate_limit.
+ * Consommé uniquement par les routes MFA (aucun mock partiel de ce module
+ * sur ces routes) — ne pas exporter vers des routes dont les tests
+ * substituent partiellement rate-limit.
+ */
+export async function peekRateLimit(
+  bucket: string,
+  windowSeconds: number,
+): Promise<number> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.rpc("peek_rate_limit", {
+    p_bucket: bucket,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) {
+    // Fail closed : une erreur de lecture est traitée comme « déjà au
+    // plafond » plutôt que comme « libre ».
+    console.error(
+      JSON.stringify({ level: "error", event: "rate_limit_peek_error", error: error.message }),
+    );
+    return Number.MAX_SAFE_INTEGER;
+  }
+  return data ?? 0;
+}
+
 let processLocalSalt: string | null = null;
 
 /**
