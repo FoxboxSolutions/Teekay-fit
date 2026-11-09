@@ -20,6 +20,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Console administrateur : jamais mise en cache publiquement, jamais
+      // indexee (M9a : noindex + Cache-Control prive sur toutes les routes
+      // /:locale/admin/*).
+      {
+        source: "/:locale/admin/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
     ];
   },
 };
