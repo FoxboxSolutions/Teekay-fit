@@ -22,9 +22,18 @@ const nextConfig: NextConfig = {
       },
       // Console administrateur : jamais mise en cache publiquement, jamais
       // indexee (M9a : noindex + Cache-Control prive sur toutes les routes
-      // /:locale/admin/*).
+      // /:locale/admin/* et /api/admin/*).
       {
         source: "/:locale/admin/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      // Les routes API /api/admin/* servent les mêmes pages/actions
+      // administratives : elles héritent des mêmes en-têtes de protection.
+      {
+        source: "/api/admin/:path*",
         headers: [
           { key: "Cache-Control", value: "private, no-store" },
           { key: "X-Robots-Tag", value: "noindex, nofollow" },
