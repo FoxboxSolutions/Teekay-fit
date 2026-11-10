@@ -15,6 +15,14 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 90_000,
   fullyParallel: false,
+  // M9a : les tests E2E partagent la BASE LOCALE UNIQUE. Le global setup
+  // exécute `supabase db reset` avant chaque run, et les tests écrivent
+  // réellement (commandes, paiements, leads, outbox…). Exécuter plusieurs
+  // workers en parallèle provoquerait des resets concurrents et des courses
+  // sur l'état de la base (un test voit les données d'un autre). workers:1
+  // est donc OBLIGATOIRE tant qu'aucune base isolée par test n'est mise en
+  // place (point ouvert M9b).
+  workers: 1,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
