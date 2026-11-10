@@ -430,6 +430,15 @@ Les clés IP, téléphone et e-mail sont HMAC-SHA256 avec sel d'env : jamais d'i
 
 **Points ouverts (notés dès M9a) :** durée de conservation des notes CRM ; qui peut devenir admin (un seul admin au lancement) ; droits d'un second admin.
 
+**Preuves M9a (cases à cocher — rouvertes, preuve manquante) :**
+- [ ] a. E2E M9a (MFA → « À traiter » → traiter un lead → vérifier un paiement → renvoyer un e-mail en échec, données fictives) — **rouvert : preuve manquante**
+- [ ] b. « À traiter » inclut les dépassements de places (`capacity_exceeded`) avec compteur et test — **rouvert : preuve manquante**
+- [ ] c. Interface de revue des leads `needs_review` (identités côte à côte, décisions auditées, jamais de fusion auto) — **rouvert : preuve manquante**
+- [ ] d. `/admin/payments` intégré dans la coquille (navigation corrigée, chaque cible existe) + tests M7a conservés — **rouvert : preuve manquante**
+- [ ] e. Test global : client connecté non admin refusé sur toutes les pages ET toutes les routes `/admin` — **rouvert : preuve manquante**
+- [ ] f. Chaque écriture admin écrit son audit ; accès PAR-Q audité sans les réponses dans le journal — **rouvert : preuve manquante**
+- [ ] g. `Cache-Control: private, no-store` + `X-Robots-Tag: noindex, nofollow` sur toutes les pages ET routes `/admin` — **rouvert : preuve manquante**
+
 ---
 
 ### M9b — Offres, places, codes promo, programmes, paramètres, audit, export, PWA (2e moitié de M9)
