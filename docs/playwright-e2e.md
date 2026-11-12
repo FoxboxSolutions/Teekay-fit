@@ -33,17 +33,21 @@ Variables d'environnement nécessaires (déjà injectées par `webServer.env` da
 
 ## Intégration CI
 
-Il n'existe pas encore de fichier de workflow GitHub Actions dans ce dépôt
-(point ouvert M9b : ajouter `.github/workflows/ci.yml`). Lorsque la CI sera
-créée, elle doit exécuter :
+Le workflow CI existe déjà (`.github/workflows/ci.yml`) avec trois jobs :
 
-```yaml
-- name: Tests unitaires
-  run: npm test
-- name: Tests E2E Playwright
-  run: npm run test:e2e   # playwright.config.ts impose déjà workers: 1
-```
+1. **quality** — `npm run lint`, `npm run typecheck`, `npm run check:pdfs` et
+   `npx vitest run tests/rtl.test.ts tests/no-service-role-client.test.ts`
+   (lint, typecheck, garde PDF, tests unitaires sans base) ;
+2. **content-strict** — `node scripts/check-placeholders.mjs --strict`
+   (contrôle des placeholders, routes, numéro WhatsApp et `APP_ENV`) ;
+3. **rls** — démarre le stack Supabase local (`npx supabase start` +
+   `npx supabase db reset`) puis exécute `npm test` avec les clés du stack
+   local (tests RLS).
 
-Le job E2E a besoin de Docker (base locale Supabase) et de `next dev`
-(webServer intégré à Playwright). Aucun secret de paiement réel ne doit être
-présent (PAYMENT_PROVIDER=fake).
+Les tests E2E Playwright ne tournent **PAS** encore en CI. L'ajout d'un job
+e2e est un **point ouvert** : il doit être fait de façon **strictement
+additive** (un nouveau job `e2e` qui exécute `npx playwright test`), sans
+supprimer ni modifier aucune ligne existante du workflow. Ce job E2E aura
+besoin de Docker (base locale Supabase) et de `next dev` (webServer intégré
+à Playwright). Aucun secret de paiement réel ne doit être présent
+(`PAYMENT_PROVIDER=fake`).
