@@ -2,6 +2,27 @@ import { defineConfig, devices } from "@playwright/test";
 import { MAILER_CAPTURE_PATH } from "./e2e/global-setup";
 
 /**
+ * M9a (g) — AJOUT strictement additif : le serveur E2E peut être celui d'un
+ * build de PRODUCTION déjà démarré à la main (`npm run build` puis
+ * `npm start`), et non le `next dev` lancé par Playwright.
+ *
+ * Pourquoi : les en-têtes de protection ne sont PAS identiques en dev et en
+ * prod (next dev écrase `private` sur les pages), donc le test
+ * `e2e/m9a-headers.spec.ts` DOIT tourner contre le bon serveur
+ * (PW_SERVER_MODE=dev|prod, jamais deviné).
+ *
+ * Comportement (rien n'est supprimé, `workers: 1` reste) :
+ *  - hors CI (comportement historique inchangé) : un serveur déjà présent
+ *    sur http://localhost:3000 est RÉUTILISÉ (jamais deux processus Next
+ *    en parallèle) ;
+ *  - `PW_REUSE_EXISTING_SERVER=1` : force la réutilisation même en CI
+ *    (CI = false ⇒ le serveur de prod déjà démarré est réutilisé au lieu
+ *    de lancer `npm run dev`).
+ */
+const PW_REUSE_EXISTING_SERVER =
+  process.env.PW_REUSE_EXISTING_SERVER === "1" || !process.env.CI;
+
+/**
  * E2E Playwright — parcours réels contre `next dev` (clés de test Turnstile
  * autorisées sur localhost, cf. src/lib/security/turnstile.ts).
  *
@@ -34,7 +55,7 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: PW_REUSE_EXISTING_SERVER,
     timeout: 120_000,
     // M6 : parcours de commande E2E contre le fournisseur fictif —
     // dev/preview explicite UNIQUEMENT (garde APP_ENV au démarrage).
