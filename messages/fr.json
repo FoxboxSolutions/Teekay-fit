@@ -647,6 +647,7 @@
       "unavailable": "non disponible",
       "unitLeads": "leads",
       "unitDa": "DA",
+      "rate": "quiz terminés sur quiz commencés",
       "atreat": "À traiter",
       "atreatHref": "./a-traiter",
       "leadsHref": "./leads",
@@ -731,7 +732,8 @@
       "notesPlaceholder": "Notes internes admin (jamais de réponses PAR-Q / données de santé)",
       "empty": "Aucun lead",
       "leadUpdated": "Statut mis à jour.",
-      "leadUpdatedError": "Échec de la mise à jour."
+      "leadUpdatedError": "Échec de la mise à jour.",
+      "notAdmin": "Accès réservé aux administrateurs."
     },
     "clients": {
       "metaTitle": "Clients",
