@@ -125,9 +125,9 @@ describe("generateMetadata", () => {
 });
 
 describe("page /admin/a-traiter — garde aal2", () => {
-  it("sans session ⇒ redirect ./mfa", async () => {
+  it("sans session ⇒ redirect /{locale}/admin/mfa", async () => {
     guardState.guard = { ok: false, status: 401, error: "unauthenticated" };
-    await expect(page({ params })).rejects.toThrow("REDIRECT:./mfa");
+    await expect(page({ params })).rejects.toThrow("REDIRECT:/fr/admin/mfa");
   });
 
   it("connecte mais pas admin ⇒ affichage neutre, aucune donnee", async () => {

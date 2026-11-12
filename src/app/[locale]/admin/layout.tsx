@@ -9,7 +9,7 @@ import { getTranslations } from "next-intl/server";
  * - mobile-first : conteneur large base + sm/lg, pas de texte en dur
  *   (next-intl, namespace admin.dashboard), CSS logiques.
  * - chaque page enfant garde elle-même l'acces (requireAdminAal2 :
- *   redirect vers ./mfa sans authentification / second facteur manquant /
+ *   redirect vers /{locale}/admin/mfa sans authentification / second facteur manquant /
  *   session expiree ; affichage neutre sans etre admin) rejoue a chaque
  *   requete, jamais les donnees.
  */

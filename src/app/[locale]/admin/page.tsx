@@ -72,7 +72,7 @@ export default async function AdminHomePage({
         </section>
       );
     }
-    redirect("./mfa");
+    redirect(`/${locale}/admin/mfa`);
   }
 
   const now = new Date();

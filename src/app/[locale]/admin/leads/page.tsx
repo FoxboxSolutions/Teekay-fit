@@ -93,7 +93,7 @@ export default async function LeadsPage({
         </section>
       );
     }
-    redirect("./mfa");
+    redirect(`/${locale}/admin/mfa`);
   }
 
   const sp = await searchParams;

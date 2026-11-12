@@ -73,7 +73,7 @@ export default async function ClientsPage({
         </section>
       );
     }
-    redirect("./mfa");
+    redirect(`/${locale}/admin/mfa`);
   }
 
   const supabase = await createSupabaseServerClient();

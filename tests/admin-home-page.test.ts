@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterAll, beforeAll } from "vites
 
 /**
  * M9a — page d'accueil /admin :
- *  - garde aal2 (redirect ./mfa si non signe / MFA manquant / session
+ *  - garde aal2 (redirect /{locale}/admin/mfa si non signe / MFA manquant / session
  *    expiree ; neutre si pas admin) ;
  *  - indicateurs reels, « non disponible » quand la source fait défaut ;
  *  - metadata noindex.
@@ -97,20 +97,20 @@ describe("generateMetadata", () => {
 });
 
 describe("page /admin — garde aal2", () => {
-  it("sans session ⇒ redirect ./mfa (redirection vers le defi MFA)", async () => {
+  it("sans session ⇒ redirect /{locale}/admin/mfa (redirection vers le defi MFA)", async () => {
     guardCtx.guard = { ok: false, status: 401, error: "unauthenticated" };
-    await expect(page({ params })).rejects.toThrow("REDIRECT:./mfa");
-    expect(redirectCtx.calls).toEqual(["./mfa"]);
+    await expect(page({ params })).rejects.toThrow("REDIRECT:/fr/admin/mfa");
+    expect(redirectCtx.calls).toEqual(["/fr/admin/mfa"]);
   });
 
-  it("session expiree (duree absolue depassee) ⇒ redirect ./mfa", async () => {
+  it("session expiree (duree absolue depassee) ⇒ redirect /{locale}/admin/mfa", async () => {
     guardCtx.guard = { ok: false, status: 403, error: "session_expired" };
-    await expect(page({ params })).rejects.toThrow("REDIRECT:./mfa");
+    await expect(page({ params })).rejects.toThrow("REDIRECT:/fr/admin/mfa");
   });
 
-  it("second facteur manquant ⇒ redirect ./mfa", async () => {
+  it("second facteur manquant ⇒ redirect /{locale}/admin/mfa", async () => {
     guardCtx.guard = { ok: false, status: 403, error: "mfa_required" };
-    await expect(page({ params })).rejects.toThrow("REDIRECT:./mfa");
+    await expect(page({ params })).rejects.toThrow("REDIRECT:/fr/admin/mfa");
   });
 
   it("connecte mais pas admin ⇒ affichage neutre, aucune donnee", async () => {

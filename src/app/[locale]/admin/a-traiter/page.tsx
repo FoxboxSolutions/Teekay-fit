@@ -79,7 +79,7 @@ export default async function ATraiterPage({
         </section>
       );
     }
-    redirect("./mfa");
+    redirect(`/${locale}/admin/mfa`);
   }
 
   const now = new Date();
