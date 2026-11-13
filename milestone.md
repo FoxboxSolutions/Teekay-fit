@@ -435,9 +435,9 @@ Les clés IP, téléphone et e-mail sont HMAC-SHA256 avec sel d'env : jamais d'i
 - [ ] b. « À traiter » inclut les dépassements de places (`capacity_exceeded`) avec compteur et test — **rouvert : preuve manquante**
 - [ ] c. Interface de revue des leads `needs_review` (identités côte à côte, décisions auditées, jamais de fusion auto) — **rouvert : preuve manquante**
 - [ ] d. `/admin/payments` intégré dans la coquille (navigation corrigée, chaque cible existe) + tests M7a conservés — **rouvert : preuve manquante**
-- [ ] e. Test global : client connecté non admin refusé sur toutes les pages ET toutes les routes `/admin` — **rouvert : preuve manquante**
-- [ ] f. Chaque écriture admin écrit son audit ; accès PAR-Q audité sans les réponses dans le journal — **rouvert : preuve manquante**
-- [ ] g. `Cache-Control: private, no-store` + `X-Robots-Tag: noindex, nofollow` sur toutes les pages ET routes `/admin` — **rouvert : preuve manquante**
+- [x] e. Test global : client connecté non admin refusé sur toutes les pages ET toutes les routes `/admin` — **preuve** : `tests/admin-headers.test.ts` (11/11) + `e2e/m9a-headers.spec.ts` test « client connecté NON ADMIN » (4/4 avec PW_SERVER_MODE=dev) : 403 `not_admin` sur les 11 routes `/api/admin/*`, pages neutres sans contenu (307 ou 200 bloqué). Commits `ae4b7d1`, `93bc0d8`, `61ba9b6`.
+- [x] f. Chaque écriture admin écrit son audit ; accès PAR-Q audité sans les réponses dans le journal — **preuve** : `tests/m9a-parq-route.test.ts` (10/10), `tests/m9a-db-parq.test.ts` (1/1, admin TOTP réel : consulte A, reçoit uniquement A, exactement 1 audit), `e2e/m9a-parq.spec.ts` (1/1) : audit `parq_answers_read` écrit AVANT la lecture, metadata = `{ order_id }` seul — aucune réponse q1..q7 dans l'entrée d'audit ni dans les journaux d'erreur. Commits `cbe7541` (feat), `61ba9b6` (test).
+- [x] g. `Cache-Control: private, no-store` + `X-Robots-Tag: noindex, nofollow` sur toutes les pages ET routes `/admin` — **preuve** : `tests/admin-headers.test.ts` (11/11, patterns `/api/admin/:path*` et `/:locale/admin/:path*`) + `e2e/m9a-headers.spec.ts` (4/4) rejoué en dev ET prod (`PW_SERVER_MODE=dev|prod`, 11/11 suite complète). Commits `ae4b7d1`, `93bc0d8`.
 
 ---
 
