@@ -157,16 +157,21 @@ export default async function AdminHomePage({
       <nav className="mt-10 space-y-2">
         <h3 className="text-xs uppercase tracking-wide text-ink-muted">{t("navTitle")}</h3>
         <ul className="space-y-1">
+          {/* M9b (d) — hrefs construits avec la locale du segment : les
+              chemins relatifs « ./… » se résolvaient depuis /{locale}/admin
+              hors de l'espace admin (404) et « ./paiements » ne correspondait
+              à aucune route. Aucun préfixe de locale codé en dur (préparation
+              RTL, Phase 2b). Lien « Commandes » retiré : aucune page de liste
+              n'existe (point ouvert documenté). */}
           <li>
-            <a className="underline" href={t("atreatHref")}>
+            <a className="underline" href={`/${locale}/admin/a-traiter`}>
               {t("atreat")}
             </a>
           </li>
-          <li><a className="underline" href={t("leadsHref")}>{t("navLeads")}</a></li>
-          <li><a className="underline" href={t("clientsHref")}>{t("navClients")}</a></li>
-          <li><a className="underline" href={t("ordersHref")}>{t("navOrders")}</a></li>
-          <li><a className="underline" href={t("paymentsHref")}>{t("navPayments")}</a></li>
-          <li><a className="underline" href={t("mfaHref")}>{t("navMfa")}</a></li>
+          <li><a className="underline" href={`/${locale}/admin/leads`}>{t("navLeads")}</a></li>
+          <li><a className="underline" href={`/${locale}/admin/clients`}>{t("navClients")}</a></li>
+          <li><a className="underline" href={`/${locale}/admin/payments`}>{t("navPayments")}</a></li>
+          <li><a className="underline" href={`/${locale}/admin/mfa`}>{t("navMfa")}</a></li>
         </ul>
       </nav>
     </section>

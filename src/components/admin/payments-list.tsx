@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -40,6 +40,9 @@ const SEP_CURRENCY = " DA";
 
 export function AdminPaymentsList() {
   const t = useTranslations("admin.payments");
+  // Locale du segment (pattern établi : components/design-system/showcase.tsx)
+  // — jamais de préfixe de locale codé en dur (M9b-d, préparation RTL).
+  const locale = useLocale();
   const [items, setItems] = useState<PaymentItem[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [amounts, setAmounts] = useState<Record<string, string>>({});
@@ -152,7 +155,7 @@ export function AdminPaymentsList() {
     return (
       <Card className="p-6">
         <p className="text-sm text-muted-foreground">{t(loadError as never)}</p>
-        <Link className="text-sm underline" href="/fr/admin/mfa">
+        <Link className="text-sm underline" href={`/${locale}/admin/mfa`}>
           {t("goMfa")}
         </Link>
       </Card>
