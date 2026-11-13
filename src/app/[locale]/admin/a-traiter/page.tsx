@@ -52,7 +52,6 @@ type OutboxRow = {
   created_at: string;
 };
 type MedicalRow = {
-  id: string;
   order_id: string;
   medical_advice_recommended: boolean;
   created_at: string;
@@ -125,9 +124,12 @@ export default async function ATraiterPage({
       return r as DbResult;
     })(),
     (async () => {
+      // M9b : SELECT limité aux 3 colonnes accordées au niveau REST
+      // (migration 20261113100000) — `id` retiré, clé React = order_id
+      // (UNIQUE sur cette table, phase1_schema l.422).
       const r = await supabase
         .from("aptitude_questionnaires")
-        .select("id, order_id, medical_advice_recommended, created_at")
+        .select("order_id, medical_advice_recommended, created_at")
         .eq("medical_advice_recommended", true)
         .order("created_at", { ascending: false });
       return r as DbResult;
@@ -217,7 +219,7 @@ export default async function ATraiterPage({
         ) : (
           <ul className="space-y-2">
             {medicalList.map((m) => (
-              <li key={m.id} className="text-sm">
+              <li key={m.order_id} className="text-sm">
                 {t("colReference")}{KV_SEP} {m.order_id}
               </li>
             ))}

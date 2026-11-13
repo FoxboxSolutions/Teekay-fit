@@ -290,13 +290,26 @@ describe("audit_logs — en ajout seul (y compris service-role)", () => {
 });
 
 describe("aptitude_questionnaires — accès restreint (données de santé)", () => {
+  // M9b (migration 20261113100000) : les colonnes de réponses (q1..q7) ne
+  // sont plus lisibles par authenticated (403 42501 via REST) — la lecture
+  // admin passe EXCLUSIVEMENT par POST /api/admin/par-q (service-role,
+  // audité avant lecture). Ces deux tests lisent désormais les 3 colonnes
+  // non sensibles accordées (order_id, medical_advice_recommended,
+  // created_at) : ils prouvent toujours les politiques RLS (lignes), pas
+  // l'accès aux colonnes (verrou couvert par tests/m9b-db-parq-columns).
   it("A ne voit aucun questionnaire, même avec la table lisible", async () => {
-    const { data } = await userA.from("aptitude_questionnaires").select("id");
+    const { data, error } = await userA
+      .from("aptitude_questionnaires")
+      .select("order_id, medical_advice_recommended, created_at");
+    expect(error).toBeNull();
     expect(data ?? []).toEqual([]);
   });
 
   it("L'admin accède aux questionnaires", async () => {
-    const { data } = await userC.from("aptitude_questionnaires").select("id");
+    const { data, error } = await userC
+      .from("aptitude_questionnaires")
+      .select("order_id, medical_advice_recommended, created_at");
+    expect(error).toBeNull();
     expect(Array.isArray(data)).toBe(true);
   });
 });
