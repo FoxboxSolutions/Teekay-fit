@@ -751,6 +751,22 @@
       "avisMedicalNon": "Non requis",
       "notAdmin": "Accès réservé aux administrateurs.",
       "notSignedIn": "Session requise."
+    },
+    "parq": {
+      "title": "Réponses du questionnaire d'aptitude",
+      "view": "Voir les réponses",
+      "hide": "Masquer les réponses",
+      "loading": "Consultation en cours…",
+      "error": "Consultation impossible.",
+      "yes": "Oui",
+      "no": "Non",
+      "qHeart": "Affection cardiaque",
+      "qChestExertion": "Douleur thoracique à l'effort",
+      "qChestRest": "Douleur thoracique au repos",
+      "qSyncope": "Perte de connaissance (syncope)",
+      "qJoint": "Problème osseux ou articulaire",
+      "qMedication": "Traitement pour une affection cardiaque",
+      "qOther": "Autre restriction"
     }
   }
 }
