@@ -27,7 +27,7 @@ import { totp } from "../tests/helpers/totp";
  *
  * Quatre situations — attentes lues dans le code (citations) :
  *
- *  1. SANS session        → 401 unauthenticated sur les 10 routes
+ *  1. SANS session        → 401 unauthenticated sur les 11 routes
  *                           (session.ts l.148 / l.164) ; pages : 307 vers
  *                           /{locale}/admin/mfa (redirect() des pages
  *                           dashboard l.75, a-traiter l.82, leads l.96,
@@ -36,11 +36,11 @@ import { totp } from "../tests/helpers/totp";
  *  2. ADMIN aal1          → routes mfa joignables : requireAdmin
  *                           ({requireMfa:false}) l.145-152 → enroll 200,
  *                           verify/recovery 400 invalid_code (l.32-33 /
- *                           l.36-37 puis l.69-73 / l.65-69) ; les 7 autres
+ *                           l.36-37 puis l.69-73 / l.65-69) ; les 8 autres
  *                           routes → 403 mfa_required (l.166) ; pages →
  *                           défi MFA (307) sauf /mfa 200 et /paiements 200
  *                           bloqué (aucune donnée affichée).
- *  3. CLIENT non admin    → 403 not_admin sur les 10 routes (l.149/l.165) ;
+ *  3. CLIENT non admin    → 403 not_admin sur les 11 routes (l.149/l.165) ;
  *                           les 6 pages répondent 200 avec l'affichage
  *                           NEUTRE « not_admin » (branche anticipée des
  *                           pages, aucun contenu autorisé).
@@ -141,7 +141,7 @@ const MFA_RECOVERY: RouteCall = {
   body: { code: "AAAAA-BBBBB" },
 };
 
-/** Les 7 autres routes /api/admin/* : requireAdminAal2. */
+/** Les 8 autres routes /api/admin/* : requireAdminAal2. */
 const OTHER_ROUTES: RouteCall[] = [
   { method: "GET", path: "/api/admin/payments" },
   {
@@ -162,9 +162,17 @@ const OTHER_ROUTES: RouteCall[] = [
   { method: "POST", path: "/api/admin/leads/test-id/convert", body: {} },
   { method: "POST", path: "/api/admin/leads/test-id/notes", body: { notes: "test" } },
   { method: "POST", path: "/api/admin/outbox/test-id/resend", body: {} },
+  // M9a point (f) — consultation PAR-Q à la demande (audit avant lecture).
+  // orderId fictif au FORMAT UUID : la validation stricte passe, la commande
+  // est introuvable → 404 not_found (comme les autres routes à id fictif).
+  {
+    method: "POST",
+    path: "/api/admin/par-q",
+    body: { orderId: "11111111-2222-4333-8444-555555555555" },
+  },
 ];
 
-/** Les 10 routes /api/admin/* (liste blanche — miroir de tests/admin-headers). */
+/** Les 11 routes /api/admin/* (liste blanche — miroir de tests/admin-headers). */
 const ALL_ROUTES: RouteCall[] = [MFA_ENROLL, MFA_VERIFY, MFA_RECOVERY, ...OTHER_ROUTES];
 
 /** 4 pages dont la garde redirige vers /{locale}/admin/mfa (sauf branche not_admin). */
@@ -275,7 +283,7 @@ test.describe("M9a (g) — en-têtes no-store/noindex sur toutes les réponses /
     }
   });
 
-  test("sans session : 401 sur les 10 routes, pages 307 ou 200 neutre, en-têtes protecteurs", async ({
+  test("sans session : 401 sur les 11 routes, pages 307 ou 200 neutre, en-têtes protecteurs", async ({
     page,
   }) => {
     // Aucun cookie injecté → contexte vierge, pas de session.
@@ -301,7 +309,7 @@ test.describe("M9a (g) — en-têtes no-store/noindex sur toutes les réponses /
     assertProtectiveHeaders(mfaPage, "page");
   });
 
-  test("admin aal1 : routes mfa joignables (200/400), 7 autres routes 403, pages vers le défi MFA", async ({
+  test("admin aal1 : routes mfa joignables (200/400), 8 autres routes 403, pages vers le défi MFA", async ({
     page,
     request,
   }) => {
@@ -330,7 +338,7 @@ test.describe("M9a (g) — en-têtes no-store/noindex sur toutes les réponses /
     expect(((await recoveryRes.json()) as { error: string }).error).toBe("invalid_code");
     assertProtectiveHeaders(recoveryRes, "api");
 
-    // (3) Les 7 autres routes refusent à aal1 (requireAdminAal2 → 403).
+    // (3) Les 8 autres routes refusent à aal1 (requireAdminAal2 → 403).
     for (const route of OTHER_ROUTES) {
       const res = await callRoute(page.request, route);
       expect(res.status(), `${route.method} ${route.path} à aal1`).toBe(403);
@@ -358,7 +366,7 @@ test.describe("M9a (g) — en-têtes no-store/noindex sur toutes les réponses /
     await expect(page).toHaveURL(/\/fr\/admin\/mfa/);
   });
 
-  test("client connecté NON ADMIN : 403 not_admin sur les 10 routes, pages neutres sans contenu autorisé", async ({
+  test("client connecté NON ADMIN : 403 not_admin sur les 11 routes, pages neutres sans contenu autorisé", async ({
     page,
     request,
   }) => {
