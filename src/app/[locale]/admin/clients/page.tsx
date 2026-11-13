@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { requireAdminAal2 } from "@/lib/auth/session";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ParqAnswersButton } from "@/components/admin/parq-answers-button";
 
 export const dynamic = "force-dynamic";
 
@@ -84,18 +85,33 @@ export default async function ClientsPage({
   if (error) throw error;
   const rows: CustomerRow[] = (customersRaw ?? []) as CustomerRow[];
 
-  let detail: { customer: CustomerRow; orders: OrderRow[]; aptitude: AptitudeRow | null } | null =
-    null;
+  let detail: {
+    customer: CustomerRow;
+    orders: OrderRow[];
+    aptitudeByOrder: Map<string, AptitudeRow>;
+    ordersWithParq: OrderRow[];
+  } | null = null;
 
   if (customerId) {
     const { data: customer } = await supabase.from("customers").select("*").eq("id", customerId).single();
     const { data: ordersRaw } = await supabase.from("orders").select("*").eq("customer_id", customerId).order("created_at", { ascending: false });
     const orderIds = (ordersRaw ?? []).map((o) => o.id);
-    const { data: aptitudesRaw } = await supabase.from("aptitude_questionnaires").select("*").in("order_id", orderIds);
+    // M9a (f) : AUCUNE colonne de réponse n'est lue ici — seulement
+    // l'existence d'un questionnaire et le drapeau « avis médical
+    // conseillé ». Les réponses ne sont accessibles que via la consultation
+    // explicite, auditée (POST /api/admin/par-q).
+    const { data: aptitudesRaw } = await supabase
+      .from("aptitude_questionnaires")
+      .select("order_id, medical_advice_recommended, created_at")
+      .in("order_id", orderIds);
+    const aptitudes = (aptitudesRaw ?? []) as AptitudeRow[];
+    const aptitudeByOrder = new Map(aptitudes.map((a) => [a.order_id, a]));
+    const orders = (ordersRaw ?? []) as unknown as OrderRow[];
     detail = {
       customer: customer!,
-      orders: (ordersRaw ?? []) as unknown as OrderRow[],
-      aptitude: (aptitudesRaw ?? [])[0] ?? null,
+      orders,
+      aptitudeByOrder,
+      ordersWithParq: orders.filter((o) => aptitudeByOrder.has(o.id)),
     };
   }
 
@@ -158,17 +174,30 @@ export default async function ClientsPage({
           )}
 
           <h3 className="font-medium mb-2 mt-6">{t("parQ")}</h3>
-          {detail.aptitude ? (
-            <ul className="space-y-1">
-              <li className="text-sm">
-                {t("parQRempli")}{MID_DOT}
-                {detail.aptitude.medical_advice_recommended
-                  ? <span className="font-medium text-red-text">{t("avisMedicalOui")}</span>
-                  : <span>{t("avisMedicalNon")}</span>}
-              </li>
-            </ul>
-          ) : (
+          {detail.ordersWithParq.length === 0 ? (
             <p className="text-sm text-ink-muted">{t("parQNonRempli")}</p>
+          ) : (
+            <ul className="space-y-2">
+              {detail.ordersWithParq.map((o) => {
+                const aptitude = detail.aptitudeByOrder.get(o.id)!;
+                return (
+                  <li key={o.id} className="text-sm">
+                    <div className="flex justify-between">
+                      <span>{o.reference}</span>
+                      <span>
+                        {t("parQRempli")}{MID_DOT}
+                        {aptitude.medical_advice_recommended
+                          ? <span className="font-medium text-red-text">{t("avisMedicalOui")}</span>
+                          : <span>{t("avisMedicalNon")}</span>}
+                      </span>
+                    </div>
+                    {/* Consultation EXPLICITE : les réponses ne sont lues
+                        qu'après un clic, via une route auditée (M9a-f). */}
+                    <ParqAnswersButton orderId={o.id} />
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </section>
       )}
