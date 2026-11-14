@@ -66,6 +66,7 @@ const ALLOWED_API_ROUTES: Record<string, string> = {
   "leads/test-id/status": "POST - changement de statut lead (M9a)",
   "leads/test-id/convert": "POST - conversion lead en client (M9a)",
   "leads/test-id/notes": "POST - notes admin-only d'un lead (M9a)",
+  "leads/test-id/review": "POST - revue d'identité d'un lead needs_review, décision humaine auditee avec motif (M9a point c)",
   "outbox/test-id/resend": "POST - renvoi idempotent e-mail outbox (M9a)",
   "par-q": "POST - consultation des reponses PAR-Q d'une commande, a la demande, avec audit prealable (M9a point f)",
 };

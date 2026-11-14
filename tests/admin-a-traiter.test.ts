@@ -21,12 +21,14 @@ const tables: Tables = {
   leads: [
     { id: "lt1", name: "Jean Dupont", phone: "+213 6 00 00 00 01", source: "quiz", status: "new", created_at: nowIso },
     { id: "lt2", name: "Mina Chen", phone: "+213 5 00 00 00 02", source: "contact", status: "contacted", created_at: nowIso },
+    // M9a (c) — lead en attente de revue d'identité (même table, filtre dédié).
+    { id: "lr1", name: "Famille Amrani", submitted_name: "Yacine Amrani", needs_review: true, offer_slug: "pack_3m", source: "quiz", status: "new", created_at: nowIso },
   ],
   payments: [
     { id: "pv1", order_id: "TKF-2611-0005", amount_da: 6000, status: "verifying", created_at: nowIso },
   ],
   orders: [
-    { id: "or1", reference: "TKF-2611-0009", total_da: 10000, status: "pending_payment", needs_admin_review: true, created_at: nowIso },
+    { id: "or1", reference: "TKF-2611-0009", total_da: 10000, status: "pending_payment", needs_admin_review: true, offer_name: "Séance présentiel", slot_date: "2026-11-27", created_at: nowIso },
   ],
   email_outbox: [
     { id: "e1", payment_id: "p1", event_type: "payment_confirmed", recipient: "client@example.com", status: "failed", attempts: 3, last_error: "smtp timeout", created_at: nowIso },
@@ -149,10 +151,28 @@ describe("page /admin/a-traiter — garde aal2", () => {
     expect(json).toContain("t:title");
     expect(json).toContain("Jean Dupont");
     expect(json).toContain("Mina Chen");
+    // M9a (c) — revue d'identité : 2 identités côte à côte + compteur de
+    // section (sérialisé : ["t:identityReview"," ","(",1,")"]).
+    expect(json).toContain('t:identityReview"," ","(",1,")');
+    expect(json).toContain("Famille Amrani");
+    expect(json).toContain("Yacine Amrani");
+    expect(json).toContain("t:colRegisteredName");
+    expect(json).toContain("t:colSubmittedName");
+    expect(json).toContain("pack_3m");
+    // Le composant client de décision est présent pour CE lead (rendu
+    // serveur : élément sérialisé avec son prop leadId).
+    expect(json).toContain('"leadId":"lr1"');
     expect(json).toContain("TKF-2611-0005");
     expect(json).toContain("6000");
     expect(json).toContain("TKF-2611-0009");
     expect(json).toContain("10000");
+    // M9a (b) : compteur dans le titre (sérialisé :
+    // ["t:ordersReview"," ","(",1,")"]) + offre et date de séance (dépassement
+    // audité capacity_exceeded).
+    expect(json).toContain('t:ordersReview"," ","(",1,")');
+    expect(json).toContain("Séance présentiel");
+    expect(json).toContain("2026-11-27");
+    expect(json).toContain("t:colSlotDate");
     expect(json).toContain("client@example.com");
     expect(json).toContain("3"); // tentatives outbox
   });
