@@ -42,6 +42,8 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;
+  /* Courbes d'entrance / défilement (effets marketing, hors tokens couleur) */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -68,6 +70,46 @@
 
 @utility duration-slow {
   transition-duration: var(--duration-slow);
+}
+
+/*
+ * Effets de présentation (accueil + offres) — 3 effets distincts (E1, E2, E3).
+ * E1 (entrée hero) et E2 (reveal au défilement) sont des îlots clients
+ * Framer Motion (src/components/site/hero-motion.tsx et reveal.tsx) : le
+ * contenu est visible dans le HTML serveur, le masquage éventuel n'est
+ * appliqué qu'après montage, côté client, et jamais sur un élément déjà
+ * dans le viewport au chargement. Aucune règle CSS de masquage ici.
+ */
+
+/* 1+2. Neutralisations E1 : le décalage initial (translateY, opacité 1)
+ *    ne doit jamais subsister sans JavaScript (pas de rAF/hydratation) ni
+ *    en motion réduite. transform: none !important l'emporte sur le style
+ *    en ligne déposé par Framer Motion. */
+@media (scripting: none) {
+  .hero-rise {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise {
+    transform: none !important;
+  }
+}
+
+/* 3. Hover lift des cartes offres — gated sur pointer fin (pas de faux
+ *    hover tactile), neutralisé en motion réduite. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .card-lift {
+    transition:
+      transform var(--duration-base) var(--ease-out-strong),
+      border-color var(--duration-base) var(--ease-out-strong);
+  }
+
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-line-input);
+  }
 }
 
 body {
