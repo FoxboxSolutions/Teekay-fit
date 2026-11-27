@@ -18,6 +18,7 @@
     "check:placeholders": "node scripts/check-placeholders.mjs",
     "check:placeholders:strict": "node scripts/check-placeholders.mjs --strict",
     "check:pdfs": "node scripts/check-pdfs.mjs",
+    "check:bundles": "node scripts/check-bundles.mjs",
     "supabase": "supabase"
   },
   "dependencies": {

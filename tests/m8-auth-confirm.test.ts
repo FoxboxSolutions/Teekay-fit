@@ -84,14 +84,30 @@ describe("POST /api/auth/confirm — consommation du lien", () => {
     });
   });
 
-  it("redirection ouverte refusée : //host, https://host, \\host et chemin hors liste ⇒ défaut /fr/account (liste blanche)", async () => {
-    for (const bad of ["//evil.tld", "https://evil.tld", "\\\\evil.tld", "/fr/unknown", "https:/evil.tld"]) {
+  it("TEST NOMMÉ : redirection externe refusée (//, https://, \\, encodé, traversée, casse) ⇒ défaut /fr/account", async () => {
+    for (const bad of [
+      "//evil.tld",
+      "https://evil.tld",
+      "https:/evil.tld",
+      "\\\\evil.tld",
+      "%2F%2Fevil.tld",
+      "/fr/admin/../account",
+      "/fr/admin%2F..%2Faccount",
+      "/FR/ADMIN",
+      " /fr/admin",
+      "/fr/admin ",
+      "/fr/unknown",
+      "/fr",
+      "/fr/login",
+    ]) {
       const res = await route.POST(formRequest({ token_hash: TOKEN, type: "magiclink", next: bad }));
-      expect(locationOf(res)).toBe("/fr/account");
+      expect(locationOf(res), `next=${bad}`).toBe("/fr/account");
     }
-    // Seuls les chemins de la liste blanche sont honnorés.
-    const ok = await route.POST(formRequest({ token_hash: TOKEN, type: "magiclink", next: "/fr" }));
-    expect(locationOf(ok)).toBe("/fr");
+    // Seules les deux destinations de la liste blanche sont honorées.
+    for (const good of ["/fr/admin", "/fr/account"]) {
+      const res = await route.POST(formRequest({ token_hash: TOKEN, type: "magiclink", next: good }));
+      expect(locationOf(res), `next=${good}`).toBe(good);
+    }
   });
 
   it("jeton inconnu, expiré ou DÉJÀ consommé ⇒ redirection neutre identique, AUCUNE liaison customers", async () => {

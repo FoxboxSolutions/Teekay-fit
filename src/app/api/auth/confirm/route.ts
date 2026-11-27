@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { linkCustomersAfterVerify, normalizeEmail } from "@/lib/auth/customer-access";
+import { safeNextPath } from "@/lib/auth/redirect-paths";
 import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
 
 /**
@@ -15,28 +16,14 @@ import { checkRateLimit, ipRateLimitKey } from "@/lib/security/rate-limit";
  * réussie du lien (e-mail vérifié), avec l'e-mail normalisé — idempotente,
  * jamais une ligne déjà liée à un autre utilisateur (SQL dédié).
  *
- * `next` : chemin RELATIF d'une liste blanche uniquement — tout autre
- * (//, https://, \\, inconnu) retombe sur /fr/account (pas de redirection
- * ouverte).
+ * `next` : liste blanche stricte (`safeNextPath`) — `/fr/admin` ou
+ * `/fr/account` uniquement. Tout autre (//, https://, \\, encodé, casse
+ * différente, inconnu) retombe sur /fr/account (pas de redirection ouverte).
  *
  * Réponses : redirections 303 — succès vers `next`, échec (jeton inconnu,
  * expiré ou déjà consommé) vers la même page en erreur NEUTRE (aucune
  * distinction : pas d'énumération de jetons).
  */
-
-const NEXT_FALLBACK = "/fr/account";
-const NEXT_ALLOWLIST = [NEXT_FALLBACK, "/fr"];
-
-function safeNext(raw: string | null): string {
-  if (!raw) return NEXT_FALLBACK;
-  // Chemin relatif interne UNIQUEMENT : tout ce qui commence par autre
-  // chose qu'un seul « / » (//evil.tld, https://, \\host, /a/../b hors
-  // liste) est rejeté au profit du défaut.
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("\\")) {
-    return NEXT_FALLBACK;
-  }
-  return NEXT_ALLOWLIST.includes(raw) ? raw : NEXT_FALLBACK;
-}
 
 export async function POST(request: Request) {
   // Anti-abus : la consommation est un acte sensible (usage unique).
@@ -51,7 +38,7 @@ export async function POST(request: Request) {
   const form = await request.formData().catch(() => null);
   const tokenHash = form?.get("token_hash");
   const type = form?.get("type");
-  const next = safeNext(
+  const next = safeNextPath(
     typeof form?.get("next") === "string" ? (form.get("next") as string) : null,
   );
 

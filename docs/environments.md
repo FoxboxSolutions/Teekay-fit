@@ -34,3 +34,26 @@ Règles :
 - Seule une `production` explicite est indexable : `robots.txt` ouvre `Allow: /` + sitemap ; tout autre valeur (y compris absente/invalide) publie `Disallow: /` et noindex.
 - **Build** : `npm run build:prod` et le job CI `content-strict` exigent `APP_ENV=production` dans le shell du build. Attention : Next.js n'injecte pas `.env.local` dans le processus qui lance le build — définir la variable dans le terminal ou le gestionnaire de secrets de l'hébergeur, pas seulement dans `.env.local`.
 - **Dev local** : le serveur Next lit `.env.local` au démarrage. Une variable absente vaut `absent` ⇒ argent/sécurité en mode production ; pour le provider fake en local, mettre `APP_ENV=development` dans `.env.local`.
+
+## URL publique et hostname (M9c)
+
+Un seul hostname par environnement — ne jamais melanger `localhost` et
+`127.0.0.1` (cookies de session host-only + controle CSRF sur l'origine).
+
+| Environnement | URL publique | NEXT_PUBLIC_APP_URL |
+| --- | --- | --- |
+| Developpement local | http://localhost:3000 | http://localhost:3000 |
+| Production | https://teekay.fit | https://teekay.fit |
+
+- Local : `supabase/config.toml` fixe `site_url = "http://localhost:3000"`
+  et `additional_redirect_urls = ["http://localhost:3000"]` (plus de
+  127.0.0.1). Appliquer avec `supabase stop` puis `supabase start`.
+- Bascule production : definir `NEXT_PUBLIC_APP_URL=https://teekay.fit`
+  dans le gestionnaire de secrets de l'hebergeur, puis mettre a jour
+  `site_url` / `additional_redirect_urls` du projet Supabase de production
+  (dashboard). Aucune valeur secrete dans le depot.
+- Le lien magique admin utilise `/fr/admin` comme destination de connexion
+  (voir `docs/admin-auth.md`) ; la MFA est exigee juste apres.
+- Build : `npm run check:bundles` apres `npm run build` echoue si une URL
+  locale (127.0.0.1 / localhost) fuit dans `.next/static`. En dev explicite
+  (`APP_ENV=development|preview`), l'occurrence est seulement avertie.

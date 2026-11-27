@@ -56,23 +56,40 @@
   "home": {
     "title": "TeekayFit",
     "tagline": "Discipline · Ambition · Brotherhood",
+    "kickers": {
+      "coach": "Ta progression",
+      "disciplines": "Choisis ton terrain",
+      "offers": "Choisis ton format",
+      "method": "Comment ça marche",
+      "proofs": "Des résultats réels, rien d'inventé",
+      "faq": "On te répond"
+    },
     "metaDescription": "Coach sportif : musculation, boxe anglaise, HYROX, course et trail. Coaching en ligne et en présentiel.",
     "hero": {
-      "heading": "[À FOURNIR : proposition de valeur du coach]",
+      "heading": "Forge ton corps. Affûte ta discipline.",
       "baseline": "Discipline · Ambition · Brotherhood",
-      "mediaAlt": "[À FOURNIR : visuel ou vidéo d'introduction du coach]",
+      "mediaAlt": "TeekayFit — coaching hybride : force, endurance, boxe.",
       "ctaCoaching": "Voir les coaching",
       "ctaQuiz": "Trouve ton programme",
-      "videoNote": "Vidéo d'introduction à fournir (10 à 15 s)."
+      "videoNote": "Vidéo d'introduction à fournir (10 à 15 s).",
+      "wordmarkAlt": "TEEKAY — wordmark de la marque"
     },
     "coach": {
       "heading": "Le coach",
-      "body": "[À FOURNIR : présentation courte du coach]",
-      "link": "En savoir plus"
+      "body": "L'entraînement hybride croise la musculation, la course et la boxe anglaise pour construire force, endurance et mental. Pas de programme générique : chaque plan part de ton niveau, de ta disponibilité et de ton matériel.",
+      "link": "En savoir plus",
+      "photoCaption": "[À FOURNIR : photo du coach]",
+      "photoAlt": "Fodil Hamza (« Teekay ») en séance d'entraînement en salle.",
+      "qualificationsHeading": "Qualifications",
+      "qualificationsBody": "[À FOURNIR : liste des qualifications et certifications du coach]"
+    },
+    "trust": {
+      "disciplinesLabel": "Disciplines",
+      "formatsLabel": "Formats de coaching"
     },
     "disciplinesSection": {
       "heading": "Disciplines",
-      "intro": "[À FOURNIR : formulation des disciplines approuvée par le coach]"
+      "intro": "Cinq disciplines, une seule exigence : la constance. Chaque discipline a sa page — ce qu'elle demande, comment on t'y prépare."
     },
     "offers": {
       "heading": "Offres",
@@ -87,7 +104,14 @@
     },
     "method": {
       "heading": "Méthode",
-      "body": "[À FOURNIR : comment ça marche — les étapes du parcours client]"
+      "body": "Un parcours clair, de la première question à la première séance : tu sais toujours où tu en es.",
+      "stepsHeading": "Trois étapes",
+      "step1Title": "Évaluer",
+      "step1Body": "Un quiz rapide identifie ton objectif, ton niveau et ton budget. Le questionnaire d'aptitude (type PAR-Q) vérifie ensuite que tu peux t'entraîner en sécurité.",
+      "step2Title": "Programmer",
+      "step2Body": "Tu choisis ton format — Starter, coaching en ligne ou en présentiel. Prix, inclusions et places restantes sont affichés avant tout engagement.",
+      "step3Title": "Suivre",
+      "step3Body": "Tu démarres avec un plan construit sur ton évaluation, et tu ajustes avec le coach via WhatsApp. Sans renouvellement automatique : chaque mois est un choix."
     },
     "proofs": {
       "heading": "Preuves",
@@ -96,21 +120,22 @@
     "faqTeaser": {
       "heading": "Questions fréquentes",
       "link": "Voir toute la FAQ",
-      "i1": "[À FOURNIR : question fréquente 1]",
-      "a1": "[À FOURNIR : réponse à la question 1]",
-      "i2": "[À FOURNIR : question fréquente 2]",
-      "a2": "[À FOURNIR : réponse à la question 2]",
-      "i3": "[À FOURNIR : question fréquente 3]",
-      "a3": "[À FOURNIR : réponse à la question 3]"
+      "i1": "Quelle est la différence entre les trois offres ?",
+      "a1": "Starter est un pack de départ pour découvrir la méthode. Le coaching en ligne te suit à distance avec un plan structuré, et le coaching en présentiel se déroule avec le coach sur le terrain. Prix et inclusions sont lisibles sur chaque page d'offre.",
+      "i2": "Le coaching se renouvelle-t-il automatiquement ?",
+      "a2": "Non. Un nouveau mois demande un nouvel achat explicite — aucun prélèvement caché, aucun engagement tacite.",
+      "i3": "Dois-je remplir un questionnaire médical ?",
+      "a3": "Oui. Avant de démarrer, un questionnaire d'aptitude type PAR-Q vérifie que tu peux t'entraîner en sécurité. Si une réponse appelle un avis médical, consulte un professionnel de santé avant de débuter."
     },
     "finalCta": {
-      "heading": "[À FOURNIR : appel à l'action final]",
+      "heading": "Prêt à commencer ?",
       "body": "Contacte-nous par le formulaire ou écris sur WhatsApp."
     }
   },
   "coaching": {
     "metaTitle": "Coaching — TeekayFit",
     "heading": "Coaching",
+    "kicker": "Trois formats, un seul standard",
     "sub": "Trois offres : un pack de départ et deux formules de suivi. Les prix et inclusions sont lisibles avant tout engagement.",
     "cta": "Voir l'offre",
     "currency": "DA",
@@ -119,6 +144,7 @@
   "offer": {
     "notFound": "Cette offre n'est pas disponible.",
     "backToCoaching": "Retour aux coaching",
+    "kicker": "Choisis ton format",
     "durationLabel": "Durée",
     "durationLine": "Durée : {duration}",
     "priceLabel": "Prix",
@@ -196,14 +222,14 @@
   "faq": {
     "metaTitle": "FAQ — TeekayFit",
     "heading": "Questions fréquentes",
-    "i1": "[À FOURNIR : question fréquente 1]",
-    "a1": "[À FOURNIR : réponse à la question 1]",
-    "i2": "[À FOURNIR : question fréquente 2]",
-    "a2": "[À FOURNIR : réponse à la question 2]",
-    "i3": "[À FOURNIR : question fréquente 3]",
-    "a3": "[À FOURNIR : réponse à la question 3]",
-    "i4": "[À FOURNIR : question fréquente 4]",
-    "a4": "[À FOURNIR : réponse à la question 4]"
+    "i1": "Quelle est la différence entre les trois offres ?",
+    "a1": "Starter est un pack de départ pour découvrir la méthode. Le coaching en ligne te suit à distance avec un plan structuré, et le coaching en présentiel se déroule avec le coach sur le terrain. Prix et inclusions sont lisibles sur chaque page d'offre.",
+    "i2": "Le coaching se renouvelle-t-il automatiquement ?",
+    "a2": "Non. Un nouveau mois demande un nouvel achat explicite — aucun prélèvement caché, aucun engagement tacite.",
+    "i3": "Dois-je remplir un questionnaire médical ?",
+    "a3": "Oui. Avant de démarrer, un questionnaire d'aptitude type PAR-Q vérifie que tu peux t'entraîner en sécurité. Si une réponse appelle un avis médical, consulte un professionnel de santé avant de débuter.",
+    "i4": "Les résultats sont-ils garantis ?",
+    "a4": "Aucun résultat n'est garanti : le suivi dépend de ton engagement et de ta situation personnelle. Ce qui est garanti : un programme structuré, des prix lisibles avant engagement et un suivi réel avec le coach."
   },
   "contact": {
     "metaTitle": "Contact — TeekayFit",
@@ -357,7 +383,20 @@
       "title": "Connexion à votre espace",
       "intro": "Un seul clic suffit : ce lien est personnel et à usage unique.",
       "signIn": "Se connecter",
-      "expired": "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien de connexion depuis la page de suivi de votre commande."
+      "expired": "Ce lien a expiré ou a déjà été utilisé. Demandez un nouveau lien de connexion.",
+      "requestNew": "Demander un nouveau lien"
+    },
+    "login": {
+      "metaTitle": "Connexion — TeekayFit",
+      "title": "Connexion",
+      "intro": "Recevez un lien de connexion unique par e-mail. Aucun mot de passe n'est nécessaire.",
+      "emailLabel": "Adresse e-mail",
+      "submit": "Recevoir mon lien",
+      "sending": "Envoi…",
+      "sent": "Si un compte existe pour cette adresse, un lien de connexion vient d'être envoyé. Vérifiez votre boîte de réception.",
+      "invalidEmail": "Adresse e-mail invalide.",
+      "rateLimited": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "networkError": "Service momentanément indisponible. Réessayez."
     }
   },
   "account": {
@@ -580,10 +619,14 @@
     "mfa": {
       "metaTitle": "Sécurité administrateur",
       "notSignedIn": "Session requise. Connectez-vous avant d'accéder à cette page.",
+      "signInLink": "Se connecter avec un lien",
       "notAdmin": "Accès réservé aux administrateurs.",
       "enrollTitle": "Activer la double authentification (TOTP)",
       "enrollIntro": "Générez un code dans votre application d'authentification (ex. Google Authenticator) avec le QR code ci-dessous, puis saisissez le code à 6 chiffres pour vérifier l'activation.",
       "startEnroll": "Générer mon QR code",
+      "challengeTitle": "Vérifier votre session",
+      "challengeIntro": "Un facteur TOTP est déjà actif sur ce compte. Saisissez le code à 6 chiffres de votre application d'authentification pour déverrouiller les actions administrateur.",
+      "challengeSubmit": "Vérifier le code",
       "qrAlt": "QR code d'enrôlement TOTP",
       "secretLabel": "Clé secrète (saisie manuelle)",
       "codeLabel": "Code à 6 chiffres",

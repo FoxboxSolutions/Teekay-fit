@@ -18,7 +18,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: [".next/**", "node_modules/**", "supabase/.temp/**"],
+    ignores: [".next/**", "node_modules/**", "supabase/.temp/**", ".opencode/**"],
   },
 ];
 

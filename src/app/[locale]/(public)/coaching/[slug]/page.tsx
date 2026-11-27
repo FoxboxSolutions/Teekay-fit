@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { Badge } from "@/components/ui/badge";
+import { Reveal } from "@/components/site/reveal";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { AptitudeForm } from "@/components/site/aptitude-form";
 import { OFFER_SLUGS, type OfferSlug } from "@/lib/site/nav-data";
@@ -57,7 +58,8 @@ export default async function OfferPage({
 
       <div className="mt-4 grid gap-10 lg:grid-cols-[2fr_1fr]">
         <div>
-          <h1 className="font-display text-4xl font-bold uppercase">{offer.name}</h1>
+          <p className="text-xs font-semibold uppercase tracking-widest text-red-bright">{t("kicker")}</p>
+          <h1 className="mt-2 font-display text-4xl font-bold uppercase">{offer.name}</h1>
           <p className="mt-2 text-lg text-ink-muted">{offer.description}</p>
 
           <p className="mt-6 font-display text-5xl font-bold text-ink">
@@ -78,44 +80,51 @@ export default async function OfferPage({
           </div>
 
           {offer.inclusions && offer.inclusions.length > 0 && (
-            <section className="mt-8">
-              <h2 className="font-display text-xl font-bold uppercase">{t("inclusionsTitle")}</h2>
-              <ul className="mt-3 flex flex-col gap-2">
-                {offer.inclusions.map((inc) => (
-                  <li key={inc} className="text-ink-muted">
-                    {inc}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <Reveal>
+              <section className="mt-8">
+                <h2 className="font-display text-xl font-bold uppercase">{t("inclusionsTitle")}</h2>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {offer.inclusions.map((inc) => (
+                    <li key={inc} className="text-ink-muted">
+                      {inc}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </Reveal>
           )}
 
           {offer.exclusions && offer.exclusions.length > 0 && (
-            <section className="mt-8">
-              <h2 className="font-display text-xl font-bold uppercase">{t("exclusionsTitle")}</h2>
-              <ul className="mt-3 flex flex-col gap-2">
-                {offer.exclusions.map((exc) => (
-                  <li key={exc} className="text-ink-muted">
-                    {exc}
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <Reveal>
+              <section className="mt-8">
+                <h2 className="font-display text-xl font-bold uppercase">{t("exclusionsTitle")}</h2>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {offer.exclusions.map((exc) => (
+                    <li key={exc} className="text-ink-muted">
+                      {exc}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </Reveal>
           )}
 
           {offer.conditions && (
-            <section className="mt-8">
-              <h2 className="font-display text-xl font-bold uppercase">{t("conditionsTitle")}</h2>
-              <p className="mt-3 text-ink-muted">{offer.conditions}</p>
-            </section>
+            <Reveal>
+              <section className="mt-8">
+                <h2 className="font-display text-xl font-bold uppercase">{t("conditionsTitle")}</h2>
+                <p className="mt-3 text-ink-muted">{offer.conditions}</p>
+              </section>
+            </Reveal>
           )}
 
           <p className="mt-6 text-sm text-ink-muted">{t("noResultPromise")}</p>
         </div>
 
         <aside className="flex flex-col gap-4">
-          <div className="rounded-card border border-line bg-surface p-6">
-            <div className="flex flex-col gap-3">
+          <div className="glass relative overflow-hidden rounded-card p-6">
+            <div aria-hidden="true" className="glow -top-24 end-[-5rem] size-72" />
+            <div className="relative flex flex-col gap-3">
               <Link
                 href={`/checkout/${offer.slug}`}
                 className="inline-flex min-h-11 items-center justify-center rounded-control bg-red-lux px-5 py-3 text-sm font-semibold text-ink transition-colors duration-fast hover:bg-wine focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
@@ -130,11 +139,13 @@ export default async function OfferPage({
       </div>
 
       <section className="mt-16 border-t border-line pt-12">
-        <h2 className="font-display text-3xl font-bold uppercase">{tq("heading")}</h2>
-        <p className="mt-3 max-w-2xl text-ink-muted">{tq("intro")}</p>
-        <div className="mt-6 max-w-3xl">
-          <AptitudeForm />
-        </div>
+        <Reveal>
+          <h2 className="font-display text-3xl font-bold uppercase">{tq("heading")}</h2>
+          <p className="mt-3 max-w-2xl text-ink-muted">{tq("intro")}</p>
+          <div className="mt-6 max-w-3xl">
+            <AptitudeForm />
+          </div>
+        </Reveal>
       </section>
     </main>
   );

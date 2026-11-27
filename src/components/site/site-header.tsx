@@ -6,6 +6,23 @@ import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { Brand } from "@/components/site/brand";
 
 /**
+ * Libellé de navigation à survol CSS pur (principe 1) : le libellé visible
+ * monte hors du masque pendant qu'une copie décorative (`aria-hidden`) le
+ * remplace. La copie masquée est exclue du nom accessible : le lien garde
+ * exactement le même intitulé pour les technologies d'assistance.
+ */
+function NavSwapLabel({ text }: { text: string }) {
+  return (
+    <span className="nav-swap">
+      <span className="nav-swap-label">{text}</span>
+      <span aria-hidden="true" className="nav-swap-ghost">
+        {text}
+      </span>
+    </span>
+  );
+}
+
+/**
  * En-tête du site public. Menu mobile via <details>/<summary> (HTML natif,
  * accessible au clavier, sans JavaScript) pour préserver la performance des
  * pages statiques.
@@ -28,17 +45,17 @@ export async function SiteHeader() {
         {/* Navigation bureau */}
         <nav className="hidden items-center gap-6 md:flex" aria-label={t("primary")}>
           <Link href="/" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-            {t("home")}
+            <NavSwapLabel text={t("home")} />
           </Link>
           <Link href="/coaching" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-            {t("coaching")}
+            <NavSwapLabel text={t("coaching")} />
           </Link>
           <Link href="/quiz" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-            {t("quiz")}
+            <NavSwapLabel text={t("quiz")} />
           </Link>
           <details className="relative">
             <summary className="cursor-pointer list-none text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-              {t("disciplines")}
+              <NavSwapLabel text={t("disciplines")} />
             </summary>
             <ul className="absolute end-0 z-40 mt-2 w-48 rounded-card border border-line bg-surface-raised p-2 shadow-pop">
               {DISCIPLINES.map((d) => (
@@ -54,13 +71,13 @@ export async function SiteHeader() {
             </ul>
           </details>
           <Link href="/about" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-            {t("about")}
+            <NavSwapLabel text={t("about")} />
           </Link>
           <Link href="/faq" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-            {t("faq")}
+            <NavSwapLabel text={t("faq")} />
           </Link>
           <Link href="/contact" className="text-sm text-ink-muted transition-colors duration-fast hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-bright">
-            {t("contact")}
+            <NavSwapLabel text={t("contact")} />
           </Link>
           <WhatsAppButton variant="outline" className="px-4 py-2" />
         </nav>

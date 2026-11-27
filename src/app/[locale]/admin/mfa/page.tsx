@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Card } from "@/components/ui/card";
 import { AdminMfaPanel } from "@/components/admin/mfa-panel";
 import { getAuthContext } from "@/lib/auth/session";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,14 @@ export default async function AdminMfaPage({
       <main className="mx-auto w-full max-w-2xl px-4 py-14 sm:px-6">
         <Card className="p-6">
           <p className="text-sm text-muted-foreground">{t("notSignedIn")}</p>
+          <p className="mt-4">
+            {/* Le tableau de bord admin est une destination de connexion
+                autorisée : la garde aal2 rejoue juste après, donc ce lien
+                ne donne aucun accès tant que le TOTP n'est pas vérifié. */}
+            <a className="text-sm underline" href={`/${locale}/login?next=/${locale}/admin`}>
+              {t("signInLink")}
+            </a>
+          </p>
         </Card>
       </main>
     );
@@ -56,9 +65,23 @@ export default async function AdminMfaPage({
     );
   }
 
+  // Facteur TOTP déjà vérifié (mais session aal1) : le panneau doit
+  // proposer un DÉFI, pas un nouvel enrôlement. `getAuthContext` n'expose
+  // pas l'identifiant de facteur ; on le lit ici, côté serveur, sans
+  // modifier le garde. Échec de lecture ⇒ null (repli enrôlement).
+  let verifiedFactorId: string | null = null;
+  if (auth.hasMfa) {
+    const supabase = await createSupabaseServerClient();
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    verifiedFactorId =
+      (factors?.all ?? []).find(
+        (factor) => factor.factor_type === "totp" && factor.status === "verified",
+      )?.id ?? null;
+  }
+
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-14 sm:px-6">
-      <AdminMfaPanel alreadyVerified={auth.aal2} />
+      <AdminMfaPanel alreadyVerified={auth.aal2} verifiedFactorId={verifiedFactorId} />
     </main>
   );
 }

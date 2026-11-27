@@ -7,7 +7,10 @@
  *  - admin ⇒ panneau d'enrôlement (ou état aal2 actif si défi déjà passé) ;
  *  - metadata noindex (console admin, jamais indexée).
  */
-const ctx = vi.hoisted(() => ({ auth: null as null | Record<string, unknown> }));
+const ctx = vi.hoisted(() => ({
+  auth: null as null | Record<string, unknown>,
+  factorId: null as string | null,
+}));
 
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string) => `t:${key}`,
@@ -18,9 +21,30 @@ vi.mock("@/lib/auth/session", () => ({
   getAuthContext: async () => ctx.auth,
 }));
 
+vi.mock("@/lib/supabase/server", () => ({
+  createSupabaseServerClient: async () => ({
+    auth: {
+      mfa: {
+        listFactors: async () => ({
+          data: {
+            all: ctx.factorId
+              ? [{ id: ctx.factorId, factor_type: "totp", status: "verified" }]
+              : [],
+          },
+        }),
+      },
+    },
+  }),
+}));
+
 vi.mock("@/components/admin/mfa-panel", () => ({
-  AdminMfaPanel: ({ alreadyVerified }: { alreadyVerified: boolean }) =>
-    `AdminMfaPanel(alreadyVerified=${alreadyVerified})`,
+  AdminMfaPanel: ({
+    alreadyVerified,
+    verifiedFactorId,
+  }: {
+    alreadyVerified: boolean;
+    verifiedFactorId: string | null;
+  }) => `AdminMfaPanel(alreadyVerified=${alreadyVerified},verifiedFactorId=${verifiedFactorId})`,
 }));
 
 vi.mock("@/components/ui/card", () => ({ Card: () => null }));
@@ -41,6 +65,7 @@ afterAll(() => {
 
 beforeEach(() => {
   ctx.auth = null;
+  ctx.factorId = null;
 });
 
 describe("generateMetadata — console admin jamais indexée", () => {
@@ -80,5 +105,17 @@ describe("page /admin/mfa — garde serveur rejoué à chaque requête", () => {
       props: { children: { props: { alreadyVerified: boolean } } };
     };
     expect(el.props.children?.props.alreadyVerified).toBe(true);
+  });
+
+  it("TEST NOMMÉ : admin aal1 avec facteur vérifié ⇒ DÉFI (verifiedFactorId transmis, pas d'enrôlement)", async () => {
+    ctx.auth = { userId: "u-1", isAdmin: true, hasMfa: true, aal2: false };
+    ctx.factorId = "factor-totp-1";
+    const el = (await page({ params })) as {
+      props: {
+        children: { props: { alreadyVerified: boolean; verifiedFactorId: string | null } };
+      };
+    };
+    expect(el.props.children?.props.alreadyVerified).toBe(false);
+    expect(el.props.children?.props.verifiedFactorId).toBe("factor-totp-1");
   });
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { nonIndexableMeta } from "@/lib/env";
@@ -33,6 +34,15 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Police d'accent du hero (titre d'accent uniquement). Pas de preload : le
+// monogramme reste l'élément LCP et ne doit pas être concurrencé.
+const youthShandey = localFont({
+  src: "../../public/fonts/YouthShandey.otf",
+  display: "swap",
+  variable: "--font-youth-shandey",
+  preload: false,
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "TeekayFit",
@@ -55,7 +65,7 @@ export default async function RootLayout({
       <html
         lang={locale}
         dir={locale === "ar" ? "rtl" : "ltr"}
-        className={`${barlowCondensed700.variable} ${barlowCondensed600.variable} ${inter.variable}`}
+        className={`${barlowCondensed700.variable} ${barlowCondensed600.variable} ${inter.variable} ${youthShandey.variable}`}
       >
       <body className="antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>

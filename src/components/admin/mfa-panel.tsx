@@ -1,22 +1,38 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-type Phase = "idle" | "enrolled" | "verified";
+type Phase = "idle" | "challenge" | "enrolled" | "verified";
 
 /**
  * Panneau MFA minimal (M7a) : enrôlement TOTP + défi + codes de secours.
  * Les routes serveur (/api/admin/mfa/*) rejouent le garde admin côté serveur
  * ; ce composant n'affiche que les étapes — aucun secret n'est conservé
  * côté client (QR et clé seulement pendant l'écran d'activation).
+ *
+ * Trois chemins distincts :
+ *  - aucun facteur vérifié                 → enrôlement (QR + clé) ;
+ *  - facteur vérifié mais session aal1     → DÉFI sur ce facteur
+ *    (`challengeAndVerify`), jamais un second enrôlement ;
+ *  - session déjà aal2                     → carte « active ».
  */
-export function AdminMfaPanel({ alreadyVerified }: { alreadyVerified: boolean }) {
+export function AdminMfaPanel({
+  alreadyVerified,
+  verifiedFactorId,
+}: {
+  alreadyVerified: boolean;
+  verifiedFactorId: string | null;
+}) {
   const t = useTranslations("admin.mfa");
-  const [phase, setPhase] = useState<Phase>(alreadyVerified ? "verified" : "idle");
+  const router = useRouter();
+  const [phase, setPhase] = useState<Phase>(
+    alreadyVerified ? "verified" : verifiedFactorId ? "challenge" : "idle",
+  );
   const [enroll, setEnroll] = useState<{
     factorId: string;
     qrCode: string | null;
@@ -55,14 +71,15 @@ export function AdminMfaPanel({ alreadyVerified }: { alreadyVerified: boolean })
   }
 
   async function verify() {
-    if (!enroll) return;
+    const factorId = enroll?.factorId ?? verifiedFactorId;
+    if (!factorId) return;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/mfa/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ factorId: enroll.factorId, code }),
+        body: JSON.stringify({ factorId, code }),
       });
       if (res.status === 429) {
         setError(t("rateLimited"));
@@ -73,6 +90,9 @@ export function AdminMfaPanel({ alreadyVerified }: { alreadyVerified: boolean })
         return;
       }
       setPhase("verified");
+      // Rejoue la garde serveur : `alreadyVerified` repasse à true et la
+      // page reflète la session aal2 (durée absolue enregistrée).
+      router.refresh();
     } finally {
       setBusy(false);
     }
@@ -99,6 +119,28 @@ export function AdminMfaPanel({ alreadyVerified }: { alreadyVerified: boolean })
           <p className="mt-2 text-sm text-muted-foreground">{t("enrollIntro")}</p>
           <Button className="mt-4" onClick={startEnroll} disabled={busy}>
             {t("startEnroll")}
+          </Button>
+          {error && <p className="mt-3 text-sm text-red-text">{error}</p>}
+        </div>
+      )}
+
+      {phase === "challenge" && (
+        <div>
+          <h2 className="font-display text-lg font-bold">{t("challengeTitle")}</h2>
+          <p className="mt-2 text-sm text-muted-foreground">{t("challengeIntro")}</p>
+          <div className="mt-4 max-w-48">
+            <Input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              aria-label={t("codeLabel")}
+            />
+          </div>
+          <Button className="mt-4" onClick={verify} disabled={busy || code.length !== 6}>
+            {busy ? t("verifying") : t("challengeSubmit")}
           </Button>
           {error && <p className="mt-3 text-sm text-red-text">{error}</p>}
         </div>
@@ -134,6 +176,7 @@ export function AdminMfaPanel({ alreadyVerified }: { alreadyVerified: boolean })
               autoComplete="one-time-code"
               maxLength={6}
               placeholder="000000"
+              aria-label={t("codeLabel")}
             />
           </div>
           <Button className="mt-4" onClick={verify} disabled={busy || code.length !== 6}>

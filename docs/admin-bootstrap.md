@@ -44,11 +44,14 @@ select public.is_admin();  -- exécuté AVEC la session de l'admin : true
 
 ## Étape 3 — Première connexion (lien unique)
 
-1. Depuis la page de suivi d'une commande, ou en appelant
-   `POST /api/auth/magic-link` avec `ADMIN_EMAIL` : un lien de connexion
-   part par e-mail (limité en débit).
+1. Ouvrir `/fr/login?next=/fr/admin` (ou appeler
+   `POST /api/auth/magic-link` avec `ADMIN_EMAIL` et `next: "/fr/admin"`) :
+   un lien de connexion part par e-mail (limité en débit, réponse neutre).
 2. Cliquer le lien → page « Se connecter » → bouton (le lien est à usage
-   unique, la consommation se fait en POST).
+   unique, la consommation se fait en POST). `/fr/admin` est une
+   destination de connexion autorisée : la garde redirige aussitôt vers
+   `/fr/admin/mfa`, car la MFA est exigée juste après (voir
+   `docs/admin-auth.md`).
 
 ## Étape 4 — Activer le MFA (obligatoire avant toute action admin)
 

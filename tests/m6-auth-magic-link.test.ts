@@ -2,28 +2,41 @@ import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from "vites
 import { createHmac } from "node:crypto";
 
 /**
- * M6 — lien magique /api/auth/magic-link (décisions amendées) :
- *  - connexion seule : aucune inscription publique (signups désactivés en
- *    config, une erreur OTP est avalée) ;
- *  - réponse IDENTIQUE que l'e-mail existe ou non (pas d'énumération) ;
+ * M6 / M9c — lien magique POST /api/auth/magic-link :
+ *  - lien généré par `createLoginLink` (token_hash) puis envoyé par NOTRE
+ *    Mailer — GoTrue n'envoie rien ;
+ *  - réponse IDENTIQUE et latence comparable que l'e-mail existe ou non
+ *    (pas d'énumération, aucune création de compte) ;
+ *  - `next` passe par la liste blanche stricte ;
  *  - limitation de débit PAR IP ET PAR E-MAIL — l'e-mail en clair n'atteint
  *    jamais les compteurs (hash HMAC salé).
  */
 
-const otpState = vi.hoisted(() => ({
-  otpCalls: [] as { payload: unknown }[],
-  otpError: null as { message: string } | null,
+const state = vi.hoisted(() => ({
+  createCalls: [] as Array<{ email: string; next?: string | null }>,
+  createError: null as { message: string } | null,
+  createDelayMs: 0,
+  mailCalls: [] as Array<{ to: string; text?: string }>,
   limitResult: true as boolean,
   limitBuckets: [] as string[],
 }));
 
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseServerClient: async () => ({
-    auth: {
-      signInWithOtp: async (payload: unknown) => {
-        otpState.otpCalls.push({ payload });
-        return { error: otpState.otpError, data: otpState.otpError ? null : {} };
-      },
+vi.mock("@/lib/auth/customer-access", () => ({
+  createLoginLink: async (input: { email: string; next?: string | null }) => {
+    state.createCalls.push(input);
+    if (state.createDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, state.createDelayMs));
+    }
+    if (state.createError) throw new Error(state.createError.message);
+    return { url: `http://localhost:3000/fr/auth/confirm?token_hash=${"a".repeat(64)}&type=magiclink` };
+  },
+}));
+
+vi.mock("@/lib/mailer/provider", () => ({
+  getMailer: () => ({
+    send: async (mail: { to: string; text?: string }) => {
+      state.mailCalls.push(mail);
+      return true;
     },
   }),
 }));
@@ -33,8 +46,8 @@ vi.mock("@/lib/security/rate-limit", async (importOriginal) => {
   return {
     ...actual,
     checkRateLimit: async (bucket: string) => {
-      otpState.limitBuckets.push(bucket);
-      return otpState.limitResult;
+      state.limitBuckets.push(bucket);
+      return state.limitResult;
     },
   };
 });
@@ -51,10 +64,12 @@ afterAll(() => {
 });
 
 beforeEach(() => {
-  otpState.otpCalls = [];
-  otpState.otpError = null;
-  otpState.limitResult = true;
-  otpState.limitBuckets = [];
+  state.createCalls = [];
+  state.createError = null;
+  state.createDelayMs = 0;
+  state.mailCalls = [];
+  state.limitResult = true;
+  state.limitBuckets = [];
 });
 
 function request(body: unknown): Request {
@@ -65,52 +80,88 @@ function request(body: unknown): Request {
   });
 }
 
+const NEUTRAL_BODY = '{"ok":true}';
+
 describe("POST /api/auth/magic-link — connexion seule, réponse neutre", () => {
-  it("e-mail connu : OTP envoyé (redirect URL racine) ⇒ 200 {ok:true}", async () => {
-    const res = await route.POST(request({ email: "Client@TEST.tk" }));
+  it("e-mail connu : lien généré, Mailer appelé, 200 {ok:true}", async () => {
+    const res = await route.POST(request({ email: "Client@TEST.tk", next: "/fr/admin" }));
     expect(res.status).toBe(200);
-    const out = (await res.json()) as { ok: boolean };
-    expect(out.ok).toBe(true);
-    expect(otpState.otpCalls).toHaveLength(1);
-    const payload = otpState.otpCalls[0]?.payload as {
-      email: string;
-      options?: { emailRedirectTo?: string };
-    };
-    expect(payload.email).toBe("Client@TEST.tk");
-    expect(payload.options?.emailRedirectTo).toContain("/");
+    expect(await res.text()).toBe(NEUTRAL_BODY);
+    expect(state.createCalls).toEqual([{ email: "Client@TEST.tk", next: "/fr/admin" }]);
+    expect(state.mailCalls).toHaveLength(1);
+    expect(state.mailCalls[0]?.to).toBe("client@test.tk");
+    expect(state.mailCalls[0]?.text).toContain("/fr/auth/confirm?token_hash=");
   });
 
-  it("e-mail inconnu (signups publics désactivés : OTP en erreur) ⇒ 200 {ok:true} IDENTIQUE", async () => {
-    otpState.otpError = { message: "Signups not allowed" };
+  it("e-mail inconnu (generateLink en erreur) ⇒ MÊME corps, AUCUN envoi, aucune création", async () => {
+    state.createError = { message: "User not found" };
     const res = await route.POST(request({ email: "inconnu@test.tk" }));
     expect(res.status).toBe(200);
-    const out = (await res.json()) as { ok: boolean };
-    expect((out as unknown as Record<string, unknown>).ok).toBe(true);
-    // Forme strictement identique au succès (aucun champ de plus, mutice).
+    expect(await res.text()).toBe(NEUTRAL_BODY);
+    expect(state.mailCalls).toHaveLength(0);
   });
 
-  it("e-mail invalide ⇒ 400 (aucune écriture, aucun OTP)", async () => {
+  it("TEST NOMMÉ : latence comparable compte connu / inconnu (plancher neutre)", async () => {
+    state.createDelayMs = 40;
+    const samples = { known: [] as number[], unknown: [] as number[] };
+
+    for (let i = 0; i < 3; i += 1) {
+      state.createError = null;
+      let started = performance.now();
+      const known = await route.POST(request({ email: "connu@test.tk" }));
+      samples.known.push(performance.now() - started);
+      expect(known.status).toBe(200);
+      expect(await known.text()).toBe(NEUTRAL_BODY);
+
+      state.createError = { message: "User not found" };
+      started = performance.now();
+      const unknown = await route.POST(request({ email: "inconnu@test.tk" }));
+      samples.unknown.push(performance.now() - started);
+      expect(unknown.status).toBe(200);
+      expect(await unknown.text()).toBe(NEUTRAL_BODY);
+    }
+
+    const median = (values: number[]): number =>
+      [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0;
+    const knownMs = median(samples.known);
+    const unknownMs = median(samples.unknown);
+
+    // Le plancher de 150 ms rend les deux branches indiscernables.
+    expect(knownMs).toBeGreaterThanOrEqual(140);
+    expect(unknownMs).toBeGreaterThanOrEqual(140);
+    expect(Math.abs(knownMs - unknownMs)).toBeLessThan(50);
+  });
+
+  it("e-mail invalide ⇒ 400 (aucune génération, aucun envoi)", async () => {
     const res = await route.POST(request({ email: "pas-un-email" }));
     expect(res.status).toBe(400);
-    expect(otpState.otpCalls).toHaveLength(0);
+    expect(state.createCalls).toHaveLength(0);
+    expect(state.mailCalls).toHaveLength(0);
+  });
+
+  it("next hors liste blanche ⇒ /fr/account (jamais une URL externe)", async () => {
+    const res = await route.POST(
+      request({ email: "client@test.tk", next: "https://evil.tld" }),
+    );
+    expect(res.status).toBe(200);
+    expect(state.createCalls).toEqual([{ email: "client@test.tk", next: "/fr/account" }]);
   });
 
   it("limitation de débit : buckets IP ET e-mail, e-mail JAMAIS en clair (HMAC salé) ⇒ 429", async () => {
-    otpState.limitResult = false;
+    state.limitResult = false;
     const res = await route.POST(request({ email: "client@test.tk" }));
     expect(res.status).toBe(429);
-    expect(otpState.otpCalls).toHaveLength(0);
+    expect(state.createCalls).toHaveLength(0);
 
-    expect(otpState.limitBuckets).toHaveLength(2);
+    expect(state.limitBuckets).toHaveLength(2);
     const emailBucket =
-      otpState.limitBuckets[0]?.startsWith("auth_magic_email:")
-        ? (otpState.limitBuckets[0] ?? "")
-        : (otpState.limitBuckets[1] ?? "");
+      state.limitBuckets[0]?.startsWith("auth_magic_email:")
+        ? (state.limitBuckets[0] ?? "")
+        : (state.limitBuckets[1] ?? "");
     expect(emailBucket.startsWith("auth_magic_email:")).toBe(true);
-    // Le hash attendu est le HMAC salé de l'e-mail normalisé (jamais le clair).
     const expected = createHmac("sha256", "test-salt-m6").update("client@test.tk").digest("hex");
     expect(emailBucket).toBe(`auth_magic_email:${expected}`);
-    for (const bucket of otpState.limitBuckets) {
+    for (const bucket of state.limitBuckets) {
       expect(bucket).not.toContain("client@test.tk");
     }
   });

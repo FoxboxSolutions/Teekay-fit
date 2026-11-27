@@ -1,6 +1,7 @@
 import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getMailer } from "@/lib/mailer/provider";
+import { safeNextPath } from "@/lib/auth/redirect-paths";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
@@ -25,6 +26,21 @@ const APP_URL_FALLBACK = "http://localhost:3000";
 /** Normalisation e-mail : trim + minuscules (forme stockée et comparée). */
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+/**
+ * Identifiant du compte existant pour cet e-mail (RPC service-role), ou
+ * null. Sert de garde AVANT `generateLink` : sur certaines versions de
+ * GoTrue, générer un lien `magiclink` pour une adresse inconnue CRÉE le
+ * compte. La connexion ne doit jamais créer d'utilisateur.
+ */
+export async function findAuthUserIdByEmail(email: string): Promise<string | null> {
+  const { data, error } = await createSupabaseAdminClient().rpc(
+    "find_auth_user_id_by_email",
+    { p_email: normalizeEmail(email) },
+  );
+  if (error) throw new Error(error.message);
+  return typeof data === "string" && data ? data : null;
 }
 
 /** Compte client existant ou créé (jamais de doublon). */
@@ -115,21 +131,18 @@ export type LoginLink = {
   url: string;
 };
 
-/** Chemins `next` autorisés (liste blanche — aucune redirection ouverte). */
-const NEXT_ALLOWLIST = ["/fr/account", "/fr"];
-
 /**
  * Construit l'URL de confirmation locale depuis un lien d'action GoTrue :
  * on n'envoie JAMAIS l'action_link (il passe par /auth/v1/verify) — seul le
  * token_hash extrait est recopié dans NOTRE page /auth/confirm (POST).
+ * `next` passe par la liste blanche stricte (`safeNextPath`).
  */
 export function buildConfirmUrl(input: {
   hashedToken: string;
   next?: string | null;
 }): LoginLink {
   const base = process.env.NEXT_PUBLIC_APP_URL || APP_URL_FALLBACK;
-  const next =
-    input.next && NEXT_ALLOWLIST.includes(input.next) ? input.next : "/fr/account";
+  const next = safeNextPath(input.next);
   const url = new URL("/auth/confirm", base);
   url.searchParams.set("token_hash", input.hashedToken);
   url.searchParams.set("type", "magiclink");
@@ -142,11 +155,19 @@ export async function createLoginLink(input: {
   email: string;
   next?: string | null;
 }): Promise<LoginLink> {
+  // Garde anti-création : une adresse inconnue ne doit JAMAIS produire de
+  // compte (generateLink peut créer l'utilisateur selon la version GoTrue).
+  if (!(await findAuthUserIdByEmail(input.email))) {
+    throw new Error("account_not_found");
+  }
+
   const admin = createSupabaseAdminClient();
+  const next = safeNextPath(input.next);
+  const base = process.env.NEXT_PUBLIC_APP_URL || APP_URL_FALLBACK;
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email: normalizeEmail(input.email),
-    options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || APP_URL_FALLBACK}/fr/account` },
+    options: { redirectTo: `${base}${next}` },
   });
   if (error || !data?.properties?.hashed_token) {
     throw new Error(error?.message ?? "generateLink: reponse illisible");

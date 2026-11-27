@@ -25,6 +25,9 @@ coverage/
 test-results/
 playwright-report/
 
+# Skills locaux du harnais de développement (jamais versionnés)
+.opencode/
+
 # Divers
 *.log
 .DS_Store
@@ -34,3 +37,6 @@ Thumbs.db
 # sauf fixtures de test (M8 bloc 5, garde CI scripts/check-pdfs.mjs)
 *.pdf
 !tests/fixtures/**/*.pdf
+
+# Sources photos identifiables — jamais versionnées
+assets/source/
